@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Web Exam Trainer</title>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --text:#ffffff;
+  --accent:#38bdf8;
+  --good:#22c55e;
+  --bad:#ef4444;
+}
+.light{
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#111;
+}
+body{
+  margin:0;
+  font-family:Segoe UI, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+h1{ text-align:center; color:var(--accent); }
+
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:15px;
+  margin-bottom:20px;
+}
+button{
+  padding:10px 15px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:var(--accent);
+  color:white;
+  font-weight:bold;
+}
+button.secondary{
+  background:transparent;
+  border:1px solid var(--accent);
+  color:var(--accent);
+}
+.options div{
+  background:#0002;
+  padding:10px;
+  margin:8px 0;
+  border-radius:8px;
+  cursor:pointer;
+}
+.options div:hover{
+  background:#0004;
+}
+.correct{ background:var(--good)!important; }
+.wrong{ background:var(--bad)!important; }
+.progress{
+  height:8px;
+  background:#0003;
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.bar{
+  height:100%;
+  width:0%;
+  background:var(--accent);
+}
+.nav-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(40px,1fr));
+  gap:5px;
+}
+.nav-grid div{
+  background:#0002;
+  padding:6px;
+  text-align:center;
+  border-radius:6px;
+  cursor:pointer;
+}
+.nav-grid .done{ background:var(--good); }
+.nav-grid .active{ border:2px solid var(--accent); }
+.hidden{ display:none; }
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.timer{
+  font-weight:bold;
+  color:orange;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>🌐 Ultimate Web Exam Trainer</h1>
+
+<div id="home" class="card">
+  <button onclick="startExam()">📝 30 сұрақ (таймермен)</button>
+  <button onclick="startTopic('JS')">JS</button>
+  <button onclick="startTopic('CSS')">CSS</button>
+  <button onclick="startTopic('HTML')">HTML</button>
+  <button onclick="startTopic('PHP')">PHP</button>
+  <button onclick="startTopic('SQL')">SQL</button>
+  <button onclick="toggleTheme()" class="secondary">🌗 Theme</button>
+</div>
+
+<div id="quiz" class="hidden card">
+  <div class="top">
+    <button onclick="goHome()" class="secondary">← Артқа</button>
+    <div id="timer" class="timer"></div>
+  </div>
+
+  <div class="progress"><div id="bar" class="bar"></div></div>
+  <div id="question"></div>
+  <div id="options" class="options"></div>
+
+  <br>
+  <button onclick="nextQuestion()">Келесі</button>
+  <br><br>
+
+  <div id="navigator" class="nav-grid"></div>
+</div>
+
+<div id="result" class="hidden card"></div>
+</div>
+
+<audio id="soundCorrect" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="soundWrong" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+const questions=[
+{q:"window объектісінің хабарлама шығаратын әдісі?",o:["prompt()","splice()","confirm()","shift()","alert()"],a:4,t:"JS"},
+{q:"Айнымалы типін қайтаратын оператор?",o:["unshift()","typeof","pop()","some()","push()"],a:1,t:"JS"},
+{q:"parseInt() не істейді?",o:["бүтін санға айналдырады","float жасайды","есептейді","іздейді","қосады"],a:0,t:"JS"},
+{q:"Массив ұзындығы?",o:["Boolean","Object","concat()","length","push()"],a:3,t:"JS"},
+{q:"OR операторы?",o:["||","&&","!","!=","%"],a:0,t:"JS"},
+{q:"AND операторы?",o:["||","&&","!","!=","%"],a:1,t:"JS"},
+
+{q:"CSS селектор деген не?",o:["HTML атауы","{} блогы","атрибут","drag","құрылым"],a:0,t:"CSS"},
+{q:"margin-left дегеніміз?",o:["шекара","өріс","шегініс","оң шегініс","оң шекара"],a:1,t:"CSS"},
+{q:"border-color не істейді?",o:["4 шекара түсі","төменгі түс","оң түс","сол түс","ені"],a:0,t:"CSS"},
+{q:"text-align не істейді?",o:["астын сызу","шегініс","туралау","сызу","жою"],a:2,t:"CSS"},
+
+{q:"UL тегі?",o:["реттелмеген тізім","мәтін","реттелген","жолдық","код"],a:0,t:"HTML"},
+{q:"Абзац тегі?",o:["P","NAV","BODY","BR","HEAD"],a:0,t:"HTML"},
+{q:"DOCTYPE не үшін?",o:["стандарт көрсету","жасыру","сілтеме","стиль","мета"],a:0,t:"HTML"},
+
+{q:"PHP айнымалы қалай басталады?",o:["<php>","<?php>","<script>","<code>","$"],a:4,t:"PHP"},
+{q:"PHP массив жариялау?",o:["array{}","array()","[]","{}","()"],a:1,t:"PHP"},
+{q:"isset() не істейді?",o:["тексереді","жояды","қосады","құрады","тоқтатады"],a:0,t:"PHP"},
+
+{q:"SQL CREATE не істейді?",o:["құрады","таңдайды","қосады","жаңартады","жояды"],a:0,t:"SQL"},
+{q:"WHERE не үшін?",o:["шарт","сұрыптау","жою","мән","өзгерту"],a:0,t:"SQL"},
+{q:"ORDER BY?",o:["шарт","сұрыптау","жою","мән","өзгерту"],a:1,t:"SQL"},
+];
+
+let selected=[],index=0,score=0,timerInterval,time=1800;
+
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+
+function startExam(){
+selected=shuffle([...questions]).slice(0,30);
+startQuiz();
+startTimer();
+}
+
+function startTopic(topic){
+selected=questions.filter(q=>q.t===topic);
+startQuiz();
+}
+
+function startQuiz(){
+index=0;score=0;
+document.getElementById("home").classList.add("hidden");
+document.getElementById("quiz").classList.remove("hidden");
+renderNav();
+showQuestion();
+}
+
+function showQuestion(){
+let q=selected[index];
+document.getElementById("question").innerHTML="<h3>"+q.q+"</h3>";
+let opts="";
+q.o.forEach((opt,i)=>{
+opts+=`<div onclick="select(${i})">${opt}</div>`;
+});
+document.getElementById("options").innerHTML=opts;
+updateBar();
+highlightNav();
+}
+
+function select(i){
+let q=selected[index];
+let options=document.querySelectorAll("#options div");
+if(i===q.a){
+options[i].classList.add("correct");
+score++;
+document.getElementById("soundCorrect").play();
+}else{
+options[i].classList.add("wrong");
+options[q.a].classList.add("correct");
+document.getElementById("soundWrong").play();
+}
+markDone(index);
+}
+
+function nextQuestion(){
+if(index<selected.length-1){index++;showQuestion();}
+else showResult();
+}
+
+function showResult(){
+clearInterval(timerInterval);
+document.getElementById("quiz").classList.add("hidden");
+document.getElementById("result").classList.remove("hidden");
+let percent=Math.round(score/selected.length*100);
+let grade=percent>=85?"5":percent>=70?"4":percent>=50?"3":"2";
+document.getElementById("result").innerHTML=`
+<h2>Нәтиже</h2>
+<p>${score}/${selected.length}</p>
+<p>${percent}%</p>
+<p>Баға: ${grade}</p>
+<button onclick="goHome()">Басты бет</button>
+`;
+}
+
+function goHome(){
+clearInterval(timerInterval);
+document.getElementById("home").classList.remove("hidden");
+document.getElementById("quiz").classList.add("hidden");
+document.getElementById("result").classList.add("hidden");
+}
+
+function startTimer(){
+time=1800;
+timerInterval=setInterval(()=>{
+time--;
+let min=Math.floor(time/60);
+let sec=time%60;
+document.getElementById("timer").innerText=min+":"+("0"+sec).slice(-2);
+if(time<=0){clearInterval(timerInterval);showResult();}
+},1000);
+}
+
+function updateBar(){
+let percent=(index/selected.length)*100;
+document.getElementById("bar").style.width=percent+"%";
+}
+
+function renderNav(){
+let nav="";
+selected.forEach((_,i)=>{
+nav+=`<div onclick="jump(${i})" id="nav${i}">${i+1}</div>`;
+});
+document.getElementById("navigator").innerHTML=nav;
+}
+
+function markDone(i){
+document.getElementById("nav"+i).classList.add("done");
+}
+
+function highlightNav(){
+document.querySelectorAll(".nav-grid div").forEach(el=>el.classList.remove("active"));
+document.getElementById("nav"+index).classList.add("active");
+}
+
+function jump(i){
+index=i;
+showQuestion();
+}
+
+function toggleTheme(){
+document.body.classList.toggle("light");
+}
+</script>
+
+</body>
+</html>
