@@ -1,1515 +1,455 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Web Exam Trainer</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{
-      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-      background:#0f0f23;color:#e0e0e0;min-height:100vh
-    }
-    .header{
-      background:linear-gradient(135deg,#1a1a3e,#2d1b69);
-      padding:20px;text-align:center;border-bottom:3px solid #6c63ff;
-      position:sticky;top:0;z-index:100
-    }
-    .header h1{font-size:24px;color:#fff;margin-bottom:5px}
-    .header p{color:#a0a0cc;font-size:14px}
-    .container{max-width:980px;margin:0 auto;padding:20px}
-    .main-menu{
-      display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-      gap:15px;margin-top:20px
-    }
-    .menu-card{
-      background:linear-gradient(145deg,#1a1a3e,#252552);
-      border:2px solid #333366;border-radius:16px;padding:25px;cursor:pointer;
-      transition:.3s;text-align:center
-    }
-    .menu-card:hover{
-      border-color:#6c63ff;transform:translateY(-3px);
-      box-shadow:0 8px 25px rgba(108,99,255,.3)
-    }
-    .menu-card .icon{font-size:40px;margin-bottom:12px}
-    .menu-card h3{color:#fff;margin-bottom:8px;font-size:18px}
-    .menu-card p{color:#8888aa;font-size:13px;line-height:1.4}
-
-    .stats-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-    .stat-item{
-      background:#1a1a3e;border:1px solid #333366;border-radius:10px;
-      padding:12px 18px;flex:1;min-width:120px;text-align:center
-    }
-    .stat-item .num{font-size:24px;font-weight:bold;color:#6c63ff}
-    .stat-item .label{font-size:11px;color:#8888aa;margin-top:3px}
-
-    .quiz-area{display:none}
-    .quiz-area.active{display:block}
-    .hidden{display:none!important}
-
-    .progress-bar-container{
-      background:#1a1a3e;border-radius:10px;height:8px;margin-bottom:20px;overflow:hidden
-    }
-    .progress-bar{
-      height:100%;background:linear-gradient(90deg,#6c63ff,#48cfad);
-      border-radius:10px;transition:width .4s
-    }
-
-    .timer-bar-container{
-      background:#1a1a3e;border-radius:10px;height:6px;margin-bottom:12px;overflow:hidden
-    }
-    .timer-bar{
-      height:100%;background:#ffc107;border-radius:10px;transition:width .25s linear
-    }
-    .timer-bar.danger{background:#ff6b6b}
-
-    .question-counter{text-align:center;color:#8888aa;font-size:14px;margin-bottom:15px}
-    .question-card{
-      background:linear-gradient(145deg,#1a1a3e,#252552);
-      border:2px solid #333366;border-radius:16px;padding:30px;margin-bottom:15px
-    }
-    .question-card h3{
-      color:#fff;font-size:18px;line-height:1.5;margin-bottom:20px
-    }
-
-    .options{display:flex;flex-direction:column;gap:10px}
-    .option-btn{
-      background:#12122e;border:2px solid #333366;border-radius:12px;
-      padding:14px 18px;color:#e0e0e0;font-size:15px;cursor:pointer;
-      transition:.2s;text-align:left;display:flex;align-items:center;gap:12px
-    }
-    .option-btn:hover{border-color:#6c63ff;background:#1a1a44}
-    .option-btn.correct{
-      border-color:#48cfad;background:rgba(72,207,173,.15);color:#48cfad
-    }
-    .option-btn.wrong{
-      border-color:#ff6b6b;background:rgba(255,107,107,.15);color:#ff6b6b
-    }
-    .option-btn.highlight-correct{
-      border-color:#48cfad;background:rgba(72,207,173,.1)
-    }
-    .option-letter{
-      width:32px;height:32px;border-radius:8px;background:#252552;
-      display:flex;align-items:center;justify-content:center;
-      font-weight:bold;font-size:13px;flex-shrink:0
-    }
-    .option-btn.correct .option-letter{background:#48cfad;color:#000}
-    .option-btn.wrong .option-letter{background:#ff6b6b;color:#000}
-
-    .explanation{
-      margin-top:15px;padding:15px;background:rgba(108,99,255,.1);
-      border-left:4px solid #6c63ff;border-radius:0 10px 10px 0;
-      font-size:14px;color:#a0a0cc;display:none
-    }
-    .explanation.show{display:block}
-
-    .next-btn{
-      display:none;width:100%;padding:14px;
-      background:linear-gradient(135deg,#6c63ff,#5a52d5);
-      border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;
-      cursor:pointer;margin-top:15px;transition:.3s
-    }
-    .next-btn:hover{background:linear-gradient(135deg,#7c73ff,#6c63ff)}
-    .next-btn.show{display:block}
-
-    .results{text-align:center;padding:40px 20px}
-    .results .score-circle{
-      width:160px;height:160px;border-radius:50%;margin:0 auto 25px;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      font-size:42px;font-weight:bold
-    }
-    .score-circle.excellent{
-      background:linear-gradient(145deg,rgba(72,207,173,.2),rgba(72,207,173,.05));
-      border:4px solid #48cfad;color:#48cfad
-    }
-    .score-circle.good{
-      background:linear-gradient(145deg,rgba(108,99,255,.2),rgba(108,99,255,.05));
-      border:4px solid #6c63ff;color:#6c63ff
-    }
-    .score-circle.bad{
-      background:linear-gradient(145deg,rgba(255,107,107,.2),rgba(255,107,107,.05));
-      border:4px solid #ff6b6b;color:#ff6b6b
-    }
-    .score-circle .percent{font-size:14px;font-weight:normal}
-    .results h2{font-size:24px;margin-bottom:10px}
-    .results p{color:#8888aa;margin-bottom:25px}
-    .results-details{
-      display:flex;justify-content:center;gap:20px;margin-bottom:30px;flex-wrap:wrap
-    }
-    .result-item{padding:15px 20px;border-radius:12px;min-width:100px}
-    .result-item.correct-bg{
-      background:rgba(72,207,173,.1);border:1px solid rgba(72,207,173,.3)
-    }
-    .result-item.wrong-bg{
-      background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3)
-    }
-    .result-item .r-num{font-size:28px;font-weight:bold}
-    .result-item.correct-bg .r-num{color:#48cfad}
-    .result-item.wrong-bg .r-num{color:#ff6b6b}
-    .result-item .r-label{font-size:12px;color:#8888aa}
-
-    .btn-group{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-    .btn{
-      padding:12px 24px;border:2px solid #6c63ff;border-radius:12px;
-      background:transparent;color:#6c63ff;font-size:14px;font-weight:bold;
-      cursor:pointer;transition:.3s
-    }
-    .btn:hover{background:#6c63ff;color:#fff}
-    .btn.primary{background:#6c63ff;color:#fff}
-    .btn.primary:hover{background:#5a52d5}
-
-    .flashcard-container{perspective:1000px;margin:20px 0}
-    .flashcard{
-      width:100%;min-height:300px;position:relative;cursor:pointer;
-      transition:transform .6s;transform-style:preserve-3d
-    }
-    .flashcard.flipped{transform:rotateY(180deg)}
-    .flashcard-front,.flashcard-back{
-      position:absolute;width:100%;min-height:300px;backface-visibility:hidden;
-      border-radius:16px;display:flex;flex-direction:column;align-items:center;
-      justify-content:center;padding:30px;text-align:center
-    }
-    .flashcard-front{
-      background:linear-gradient(145deg,#1a1a3e,#252552);border:2px solid #333366
-    }
-    .flashcard-back{
-      background:linear-gradient(145deg,#1a2e1a,#1a3e2a);
-      border:2px solid #2d6648;transform:rotateY(180deg)
-    }
-    .flashcard-front h3{font-size:20px;line-height:1.6;color:#fff}
-    .flashcard-back .answer{font-size:22px;color:#48cfad;font-weight:bold}
-    .flashcard-hint{color:#666;font-size:13px;margin-top:15px}
-    .flashcard-nav{
-      display:flex;justify-content:space-between;align-items:center;margin-top:15px
-    }
-    .flashcard-nav button{
-      padding:10px 24px;border:2px solid #333366;border-radius:10px;
-      background:#1a1a3e;color:#e0e0e0;font-size:14px;cursor:pointer;transition:.2s
-    }
-    .flashcard-nav button:hover{border-color:#6c63ff}
-    .flashcard-nav .counter{color:#8888aa}
-
-    .learn-status{
-      display:flex;justify-content:center;gap:15px;margin-bottom:20px;flex-wrap:wrap
-    }
-    .learn-stat{padding:8px 16px;border-radius:20px;font-size:13px}
-    .learn-stat.mastered{
-      background:rgba(72,207,173,.15);color:#48cfad;border:1px solid rgba(72,207,173,.3)
-    }
-    .learn-stat.learning{
-      background:rgba(255,193,7,.15);color:#ffc107;border:1px solid rgba(255,193,7,.3)
-    }
-    .learn-stat.remaining{
-      background:rgba(108,99,255,.15);color:#6c63ff;border:1px solid rgba(108,99,255,.3)
-    }
-
-    .all-questions-list{margin-top:15px}
-    .q-item{
-      background:#1a1a3e;border:1px solid #333366;border-radius:12px;
-      padding:15px;margin-bottom:10px;cursor:pointer;transition:.2s
-    }
-    .q-item:hover,.q-item.expanded{border-color:#6c63ff}
-    .q-item .q-title{
-      font-size:14px;color:#e0e0e0;display:flex;justify-content:space-between;
-      align-items:center;gap:10px
-    }
-    .q-item .q-num{color:#6c63ff;font-weight:bold;margin-right:8px}
-    .q-item .q-answer{
-      display:none;margin-top:12px;padding-top:12px;border-top:1px solid #333366
-    }
-    .q-item.expanded .q-answer{display:block}
-    .q-item .q-answer .opt{padding:6px 10px;margin:3px 0;border-radius:6px;font-size:13px}
-    .q-item .q-answer .opt.correct-opt{
-      background:rgba(72,207,173,.15);color:#48cfad;font-weight:bold
-    }
-    .q-item .q-answer .opt.normal-opt{color:#8888aa}
-
-    .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
-    .filter-btn{
-      padding:6px 14px;border:1px solid #333366;border-radius:20px;
-      background:transparent;color:#8888aa;font-size:12px;cursor:pointer;transition:.2s
-    }
-    .filter-btn:hover,.filter-btn.active{
-      border-color:#6c63ff;color:#6c63ff;background:rgba(108,99,255,.1)
-    }
-
-    .search-box,.name-input{
-      width:100%;padding:12px 18px;border:2px solid #333366;border-radius:12px;
-      background:#12122e;color:#e0e0e0;font-size:15px;margin-bottom:15px;outline:none
-    }
-    .search-box:focus,.name-input:focus{border-color:#6c63ff}
-
-    .timer{text-align:center;font-size:18px;color:#ffc107;margin-bottom:10px}
-    .back-btn{
-      display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
-      border:1px solid #333366;border-radius:10px;background:transparent;
-      color:#8888aa;font-size:13px;cursor:pointer;margin-bottom:15px;transition:.2s
-    }
-    .back-btn:hover{border-color:#6c63ff;color:#6c63ff}
-
-    .speed-indicator{text-align:center;margin-bottom:15px}
-    .speed-indicator .avg{color:#48cfad;font-size:20px;font-weight:bold}
-    .speed-indicator .label{color:#8888aa;font-size:12px}
-    .marathon-progress{text-align:center;margin-bottom:15px;color:#8888aa}
-
-    .mode-badge{
-      display:inline-block;padding:4px 12px;border-radius:20px;
-      font-size:11px;font-weight:bold;margin-bottom:15px
-    }
-    .mode-badge.exam{background:rgba(255,107,107,.2);color:#ff6b6b}
-    .mode-badge.learn{background:rgba(72,207,173,.2);color:#48cfad}
-    .mode-badge.flash{background:rgba(255,193,7,.2);color:#ffc107}
-    .mode-badge.speed{background:rgba(255,152,0,.2);color:#ff9800}
-    .mode-badge.marathon{background:rgba(108,99,255,.2);color:#6c63ff}
-    .mode-badge.mistakes{background:rgba(255,107,107,.2);color:#ff6b6b}
-
-    .leaderboard-box,.history-box{
-      background:#1a1a3e;border:1px solid #333366;border-radius:16px;padding:18px;margin-bottom:16px
-    }
-    .leaderboard-box h3,.history-box h3{margin-bottom:14px;color:#fff}
-    .lb-entry,.history-entry{
-      display:grid;grid-template-columns:60px 1.5fr 1fr 1fr 1fr;gap:10px;
-      align-items:center;background:#12122e;border:1px solid #333366;border-radius:12px;
-      padding:12px;margin-bottom:8px
-    }
-    .lb-rank{
-      width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-      font-weight:bold;background:#6c63ff;color:#fff
-    }
-    .lb-rank.gold{background:#ffc107;color:#000}
-    .lb-rank.silver{background:#c0c0c0;color:#000}
-    .lb-rank.bronze{background:#cd7f32;color:#000}
-    .lb-name{font-weight:bold;color:#fff}
-    .lb-small,.history-small{font-size:12px;color:#8888aa}
-    .lb-score{color:#48cfad;font-weight:bold}
-    .leaderboard-empty{text-align:center;color:#8888aa;padding:25px 10px}
-
-    .keyboard-hint{
-      position:fixed;bottom:15px;right:15px;background:#1a1a3e;
-      border:1px solid #333366;border-radius:10px;padding:10px 14px;
-      font-size:11px;color:#666;z-index:50
-    }
-    .keyboard-hint kbd{
-      background:#252552;border:1px solid #444;border-radius:4px;
-      padding:2px 6px;font-size:11px;color:#aaa
-    }
-
-    @media(max-width:700px){
-      .header h1{font-size:19px}
-      .container{padding:12px}
-      .question-card{padding:20px}
-      .question-card h3{font-size:16px}
-      .main-menu{grid-template-columns:1fr}
-      .stats-bar{flex-direction:column}
-      .lb-entry,.history-entry{grid-template-columns:1fr;gap:6px}
-      .lb-rank{margin:0 auto}
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Сессияға дайындық — Web тест</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#111c34; --muted:#94a3b8; --text:#e5e7eb;
+    --ok:#22c55e; --bad:#ef4444; --accent:#38bdf8; --warn:#f59e0b;
+    --line:#26344f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#08111f,#172554);color:var(--text)}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  .top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  h1{font-size:24px;margin:8px 0}
+  .card{background:rgba(17,28,52,.92);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:0 10px 35px rgba(0,0,0,.25)}
+  button,input,select{border-radius:12px;border:1px solid var(--line);background:#0b1220;color:var(--text);padding:11px 13px;font-size:15px}
+  button{cursor:pointer;font-weight:700}
+  button:hover{border-color:var(--accent)}
+  .primary{background:#0284c7;border-color:#38bdf8}
+  .ok{background:#15803d;border-color:#22c55e}
+  .bad{background:#991b1b;border-color:#ef4444}
+  .warn{background:#92400e;border-color:#f59e0b}
+  .ghost{background:#0b1220}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}.top{display:block}button,input,select{width:100%;margin:4px 0}}
+  .muted{color:var(--muted)}
+  .q{font-size:22px;line-height:1.38;margin-bottom:14px}
+  .opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;margin:8px 0;padding:13px;border-radius:14px;border:1px solid var(--line);background:#0b1220}
+  .opt .letter{min-width:34px;height:34px;border-radius:10px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-weight:900}
+  .opt.correct{border-color:var(--ok);background:rgba(34,197,94,.12)}
+  .opt.wrong{border-color:var(--bad);background:rgba(239,68,68,.12)}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#0b1220;border:1px solid var(--line);margin:3px}
+  .bar{height:12px;background:#0b1220;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .bar>div{height:100%;background:linear-gradient(90deg,#38bdf8,#22c55e);width:0%}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hidden{display:none!important}
+  .answerBox{border-left:4px solid var(--accent);padding:10px 12px;background:#0b1220;border-radius:12px;margin-top:12px}
+  .small{font-size:13px}
+  .listItem{padding:10px;border-bottom:1px solid var(--line)}
+  .kbd{font-family:monospace;background:#020617;border:1px solid #334155;padding:2px 6px;border-radius:6px}
+</style>
 </head>
 <body>
-  <div class="header">
-    <h1>🌐 Web Экзаменге Дайындық</h1>
-    <p id="header-subtitle">HTML, CSS, JS, PHP, SQL</p>
-  </div>
-
-  <div class="container">
-    <!-- MAIN -->
-    <div id="main-menu-screen">
-      <div class="stats-bar" id="global-stats"></div>
-
-      <div class="main-menu">
-        <div class="menu-card" onclick="askNameAndStart('exam')">
-          <div class="icon">📝</div>
-          <h3>Емтихан режимі</h3>
-          <p>Кездейсоқ 30 сұрақ, 30 минут таймер</p>
-        </div>
-
-        <div class="menu-card" onclick="askNameAndStart('speed')">
-          <div class="icon">⚡</div>
-          <h3>15 секунд режимі</h3>
-          <p>Әр сұраққа 15 секунд. 30 кездейсоқ сұрақ</p>
-        </div>
-
-        <div class="menu-card" onclick="startLearn()">
-          <div class="icon">🧠</div>
-          <h3>Жаттау режимі</h3>
-          <p>Қате жауаптарды қайта-қайта көрсетеді</p>
-        </div>
-
-        <div class="menu-card" onclick="startFlashcards()">
-          <div class="icon">🃏</div>
-          <h3>Карточкалар</h3>
-          <p>Сұрақ-жауап карточкалары</p>
-        </div>
-
-        <div class="menu-card" onclick="startMarathon()">
-          <div class="icon">🏃</div>
-          <h3>Марафон</h3>
-          <p>Барлық сұрақты кезекпен шешу</p>
-        </div>
-
-        <div class="menu-card" onclick="showAllQuestions()">
-          <div class="icon">📖</div>
-          <h3>Барлық сұрақтар</h3>
-          <p>Толық тізім, іздеу, жауаптарды көру</p>
-        </div>
-
-        <div class="menu-card" onclick="startMistakes()">
-          <div class="icon">❌</div>
-          <h3>Қателерді қайталау</h3>
-          <p>Қате жасаған сұрақтарды шеш</p>
-        </div>
-
-        <div class="menu-card" onclick="startByTopic()">
-          <div class="icon">📂</div>
-          <h3>Тақырып бойынша</h3>
-          <p>JS, CSS, HTML, PHP, SQL</p>
-        </div>
-
-        <div class="menu-card" onclick="showLeaderboard()">
-          <div class="icon">🏆</div>
-          <h3>Лидерборд</h3>
-          <p>Кім қанша рет тест өтті — бәрі көрінеді</p>
-        </div>
-      </div>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>⚡ Сессияға дайындық: HTML/CSS/JS/PHP/SQL</h1>
+      <div class="muted">Жылдам режим: <span class="kbd">A</span>–<span class="kbd">E</span> пернелерімен жауап бер, <span class="kbd">Enter</span> — келесі сұрақ.</div>
     </div>
-
-    <!-- NAME -->
-    <div id="name-screen" class="quiz-area">
-      <button class="back-btn" onclick="goHome()">← Бас мәзір</button>
-      <div class="question-card" style="text-align:center">
-        <h3 style="margin-bottom:16px">Атыңды жаз</h3>
-        <input id="playerNameInput" class="name-input" type="text" maxlength="25" placeholder="Мысалы: Алихан" />
-        <button class="btn primary" onclick="confirmNameAndStart()">Бастау 🚀</button>
-      </div>
-    </div>
-
-    <!-- QUIZ -->
-    <div id="quiz-screen" class="quiz-area">
-      <button class="back-btn" onclick="goHome()">← Бас мәзір</button>
-      <div id="mode-badge-container"></div>
-      <div id="timer-display" class="timer hidden"></div>
-      <div id="timer-bar-box" class="timer-bar-container hidden"><div class="timer-bar" id="timer-bar"></div></div>
-      <div id="speed-indicator" class="speed-indicator hidden"></div>
-      <div id="marathon-progress" class="marathon-progress hidden"></div>
-
-      <div class="progress-bar-container">
-        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
-      </div>
-
-      <div class="question-counter" id="question-counter"></div>
-      <div id="learn-status" class="learn-status hidden"></div>
-
-      <div class="question-card">
-        <h3 id="question-text"></h3>
-        <div class="options" id="options-container"></div>
-        <div class="explanation" id="explanation"></div>
-      </div>
-
-      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Келесі сұрақ →</button>
-    </div>
-
-    <!-- FLASH -->
-    <div id="flashcard-screen" class="quiz-area">
-      <button class="back-btn" onclick="goHome()">← Бас мәзір</button>
-      <span class="mode-badge flash">🃏 Карточкалар</span>
-
-      <div class="flashcard-container">
-        <div class="flashcard" id="flashcard" onclick="flipCard()">
-          <div class="flashcard-front">
-            <h3 id="flash-question"></h3>
-            <p class="flashcard-hint">👆 Аудару үшін бас</p>
-          </div>
-          <div class="flashcard-back">
-            <p class="answer" id="flash-answer"></p>
-          </div>
-        </div>
-      </div>
-
-      <div class="flashcard-nav">
-        <button onclick="prevFlashcard()">← Алдыңғы</button>
-        <span class="counter" id="flash-counter"></span>
-        <button onclick="nextFlashcard()">Келесі →</button>
-      </div>
-    </div>
-
-    <!-- ALL QUESTIONS -->
-    <div id="all-questions-screen" class="quiz-area">
-      <button class="back-btn" onclick="goHome()">← Бас мәзір</button>
-      <span class="mode-badge learn">📖 Барлық сұрақтар</span>
-      <input type="text" class="search-box" id="search-input" placeholder="🔍 Сұрақ іздеу..." oninput="filterQuestions()" />
-      <div class="filter-bar" id="topic-filters"></div>
-      <div class="all-questions-list" id="all-questions-list"></div>
-    </div>
-
-    <!-- TOPICS -->
-    <div id="topic-select-screen" class="quiz-area">
-      <button class="back-btn" onclick="goHome()">← Бас мәзір</button>
-      <span class="mode-badge learn">📂 Тақырып таңдау</span>
-      <div class="main-menu" id="topic-cards"></div>
-    </div>
-
-    <!-- LEADERBOARD -->
-    <div id="leaderboard-screen" class="quiz-area">
-      <button class="back-btn" onclick="goHome()">← Бас мәзір</button>
-
-      <div class="leaderboard-box">
-        <h3>🏆 Жалпы рейтинг</h3>
-        <div id="leaderboard-list"></div>
-      </div>
-
-      <div class="history-box">
-        <h3>🕘 Соңғы тест тарихы</h3>
-        <div id="history-list"></div>
-      </div>
-
-      <div style="text-align:center">
-        <button class="btn" onclick="clearLeaderboard()">🗑 Лидербордты тазалау</button>
-      </div>
-    </div>
-
-    <!-- RESULT -->
-    <div id="results-screen" class="quiz-area">
-      <div class="results" id="results-content"></div>
+    <div>
+      <span class="pill">Сұрақ саны: <b id="totalCount">0</b></span>
+      <span class="pill">Қате база: <b id="wrongCount">0</b></span>
     </div>
   </div>
 
-  <div class="keyboard-hint">
-    <kbd>1-5</kbd> жауап &nbsp; <kbd>Enter</kbd> келесі &nbsp; <kbd>Esc</kbd> мәзір
+  <div class="card" id="menu">
+    <h2>Режим таңда</h2>
+    <div class="grid">
+      <button class="primary" onclick="startTest(30,false)">🎯 30 сұрақтық емтихан режимі</button>
+      <button class="ok" onclick="startLearn()">📚 Оқу режимі: бәрін жаттау</button>
+      <button class="warn" onclick="startTest(30,true)">🔥 Тек қате/қиын сұрақтар</button>
+      <button class="ghost" onclick="showAll()">📋 Барлық сұрақ-жауапты көру</button>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <label class="pill"><input type="checkbox" id="shuffleOpts"> жауап нұсқаларын араластыру</label>
+      <button onclick="resetStats()">🗑 Статистиканы тазалау</button>
+    </div>
+    <p class="muted small">
+      Кеңес: алдымен <b>Оқу режимімен</b> 1 рет өтіп шық, кейін 3–5 рет <b>30 сұрақтық емтихан</b> тапсыр.
+    </p>
   </div>
 
-  <script>
-    // =========================
-    // BASE QUESTIONS
-    // =========================
-    const baseQuestions = [
-      { q: 'window объектісінің _______ әдісі хабарламасы бар және бір батырмасы бар қарапайым терезені көрсету үшін қолданылады.', options: ['prompt()', 'splice()', 'confirm()', 'shift()', 'alert()'], correct: 4, topic: 'JS' },
-      { q: '____________ әдісі енгізу өрісі, хабарлама және OK мен Cancel батырмалары бар диалогтық терезені көрсетеді.', options: ['prompt()', 'splice()', 'confirm()', 'shift()', 'alert()'], correct: 0, topic: 'JS' },
-      { q: '____________ операторы айнымалының деректер типін сипаттайтын жолды қайтарады.', options: ['unshift()', 'typeof', 'pop()', 'some()', 'push()'], correct: 1, topic: 'JS' },
-      { q: 'Мүмкін болған жағдайда жолды бүтін санға түрлендіретін функция:', options: ['parseInt()', 'parseFloat()', 'eval()', 'indexOf()', 'join()'], correct: 0, topic: 'JS' },
-      { q: 'Мүмкін болған жағдайда жолды қалқымалы үтірлі санға түрлендіретін функция:', options: ['parseInt()', 'parseFloat()', 'eval()', 'indexOf()', 'join()'], correct: 1, topic: 'JS' },
-      { q: 'Жолдағы өрнекті кәдімгі JavaScript өрнегі сияқты есептейтін функция:', options: ['parseInt()', 'parseFloat()', 'eval()', 'indexOf()', 'join()'], correct: 2, topic: 'JS' },
-      { q: 'Массивтегі элементтер санын анықтау үшін қолданылатын қасиет:', options: ['Boolean', 'Object', 'concat()', 'length', 'push()'], correct: 3, topic: 'JS' },
-      { q: 'else блогы жоқ шартты оператор түрі:', options: ['шарт', 'жеңілдетілген форма', 'ғаламдық айнымалы', 'өрнек', 'массив'], correct: 1, topic: 'JS' },
-      { q: 'Массивтен элементті іздеуге арналған әдіс, бірақ бұл жағдайда іздеу массивтің соңынан басталады.', options: ['reverse()', 'lastIndexOf()', 'push()', 'forEach()', 'indexOf()'], correct: 1, topic: 'JS' },
-      { q: 'Массивтің әрбір элементі үшін берілген функцияны шақыратын әдіс:', options: ['concat()', 'reverse()', 'forEach()', 'every()', 'indexOf()'], correct: 2, topic: 'JS' },
-      { q: 'Бірнеше массивті біріктіру арқылы жаңа массив жасайтын әдіс:', options: ['concat()', 'reverse()', 'reduce()', 'push()', 'sort()'], correct: 0, topic: 'JS' },
-      { q: 'Массивтің соңына элемент қосуға арналған әдіс:', options: ['splice()', 'join()', 'reduce()', 'push()', 'sort()'], correct: 3, topic: 'JS' },
-      { q: 'Массивтің бірінші элементін жоятын әдіс:', options: ['unshift()', 'shift()', 'pop()', 'push()', 'sort()'], correct: 1, topic: 'JS' },
-      { q: 'Бинарлық «НЕМЕСЕ» (OR) операциясы, егер операндтардың бірі true болса, ақиқат болады.', options: ['||', '&&', '!', '!=', '%'], correct: 0, topic: 'JS' },
-      { q: 'Унарлық терістеу (NOT) операциясы:', options: ['||', '&&', '!', '!=', '%'], correct: 2, topic: 'JS' },
-      { q: 'Массивтен элемент іздеуге арналған әдіс:', options: ['reduce()', 'lastIndexOf()', 'join()', 'concat()', 'indexOf()'], correct: 4, topic: 'JS' },
-      { q: '__________________ - айнымалылар, тұрақтылар және операторлар жиынтығы.', options: ['reduce()', 'өрнек', 'жеңілдетілген форма', 'unshift()', 'шарт'], correct: 1, topic: 'JS' },
-      { q: 'Ағымдағы итерацияны тоқтатып, келесі қадамға өтеді.', options: ['continue', 'lastIndexOf()', 'break', 'parseInt', 'indexOf()'], correct: 0, topic: 'JS' },
-      { q: '______________________ — екі индексі бар, әрқайсысы жеке квадрат жақшада жазылады.', options: ['біржолды комментарий', 'көпжолды комментарий', 'екі өлшемді массив', 'бір өлшемді массив', 'шарт'], correct: 2, topic: 'JS' },
-      { q: 'Бинарлық «ЖӘНЕ» (AND) операциясы, егер екі операнд та true болса, ақиқат болады.', options: ['||', '&&', '!', '!=', '%'], correct: 1, topic: 'JS' },
-      { q: 'Массивтің бір бөлігін жойып, оның орнына жаңа элементтерді кірістіруге арналған әдіс:', options: ['join()', 'reverse()', 'reduce()', 'slice()', 'splice()'], correct: 4, topic: 'JS' },
-      { q: 'Массив негізінде бір мәнді есептеуге арналған және элементтерді біртіндеп өңдейтін әдіс:', options: ['reduceRight()', 'reverse()', 'lastIndexOf()', 'splice()', 'reverse()'], correct: 0, topic: 'JS' },
-      { q: 'Әр элементке берілген функцияны қолдану арқылы жаңа массив құратын әдіс:', options: ['some()', 'filter()', 'map()', 'splice()', 'pop()'], correct: 2, topic: 'JS' },
-      { q: 'if шартты операторы дегеніміз не?', options: ['жолдағы өрнекті JavaScript сияқты есептейді', 'шарттың ақиқат немесе жалған болуына қарай әртүрлі командалар блогын орындайды', 'функция ішінде жарияланған айнымалы', 'if, switch', 'массив элементіне мән беру'], correct: 1, topic: 'JS' },
-      { q: 'Салыстыру операторлары негізінде құрылған логикалық өрнек дегеніміз не?', options: ['alert әдісі', 'шарт', 'айнымалы', 'ғаламдық айнымалы', 'санау циклі'], correct: 1, topic: 'JS' },
-      { q: 'Массивті бір ортақ мәнге келтіруге арналған әдіс қандай?', options: ['concat()', 'reverse()', 'reduce()', 'slice()', 'splice()'], correct: 2, topic: 'JS' },
-      { q: 'Егер массив элементтерінің кем дегенде біреуі берілген шартқа сай келсе, true мәнін қайтарады, ал әйтпесе false қайтарады.', options: ['some()', 'sort()', 'reduce()', 'slice()', 'forEach()'], correct: 0, topic: 'JS' },
-      { q: 'JavaScript-та айнымалыны қандай қызметтік сөздер арқылы жариялауға болады.', options: ['var, let', 'int', 'char', 'Var', '$ int'], correct: 0, topic: 'JS' },
-      { q: 'Логикалық деректер типі, тек екі мән қабылдайды: true (ақиқат) және false (жалған).', options: ['int', 'char', 'for', 'float', 'boolean'], correct: 4, topic: 'JS' },
-      { q: 'Массив элементтерін кері ретпен қайта сұрыптайтын әдіс:', options: ['join()', 'sort()', 'reduce()', 'reverse()', 'reduceRight()'], correct: 3, topic: 'JS' },
-      { q: 'Массив элементтері негізінде мәтіндік жол құратын әдіс:', options: ['join()', 'indexOf()', 'reduce()', 'lastIndexOf()', 'push()'], correct: 0, topic: 'JS' },
-
-      { q: 'Селектор анықтамасы __________________?', options: ['HTML элементінің атауы немесе HTML элементтер комбинациясы, оларға форматтау ережесі беріледі', 'анықтама “{” жақшасымен басталып “}” жақшасымен аяқталады', 'өңдеуге рұқсат беретін атрибут', 'drag and drop әрекеттерін анықтайтын атрибут', 'құжат құрылымын беру'], correct: 0, topic: 'CSS' },
-      { q: 'Блоктың анықтамасы___________________________?', options: ['HTML элементінің атауы немесе HTML элементтерінің комбинациясы', 'анықтама “{“ сол жақ фигуралы жақшамен басталып, “}” оң жақ фигуралы жақшамен аяқталады', 'өңдеуге рұқсат беруді көрсететін атрибут', 'drag and drop әрекеттерін анықтайтын атрибут', 'құжат құрылымын беру'], correct: 1, topic: 'CSS' },
-      { q: 'CSS енгізу (импорт) әдісі_______________________?', options: ['стильдер кестесі сыртқы файлда орналасып, HTML құжатына link арқылы қосылады', 'сыртқы файлдағы стильдер @import арқылы HTML ішіне енгізіледі', 'стильдер HTML құжаттың head бөлімінде style тегінде жазылады', 'әр тегке style атрибуты арқылы жеке стиль беріледі', 'drag and drop атрибуты'], correct: 2, topic: 'CSS' },
-      { q: 'margin-left дегеніміз не?', options: ['сол жақ шекара', 'сол жақ өріс (поле)', 'сол жақ шегініс', 'оң жақ шегініс', 'оң жақ шекара'], correct: 1, topic: 'CSS' },
-      { q: 'border-right дегеніміз не?', options: ['сол жақ шекара', 'сол жақ өріс', 'сол жақ шегініс', 'оң жақ шегініс', 'оң жақ шекара'], correct: 4, topic: 'CSS' },
-      { q: 'padding-left дегеніміз не?', options: ['сол жақ шекара', 'сол жақ өріс', 'сол жақ шегініс', 'оң жақ шегініс', 'оң жақ шекара'], correct: 2, topic: 'CSS' },
-      { q: 'padding-top дегеніміз не?', options: ['жоғарғы шегініс мөлшері', 'оң жақ шегініс мөлшері', 'төменгі шегініс мөлшері', 'сол жақ шегініс мөлшері', 'оң жақ шегініс'], correct: 0, topic: 'CSS' },
-      { q: 'width қасиеті______________________________________.', options: ['элементтің енін орнатады', 'элементтің жоғарғы шетінің орнын анықтайды', 'элементтің ішкі сол жақ шегінісін орнатады', 'сол жақ шекараның түсін орнатады', 'элементтің төменгі шетінің орнын анықтайды'], correct: 0, topic: 'CSS' },
-      { q: 'Төменгі шекараның ені қалай беріледі ________________?', options: ['border-top-width:', 'border-bottom-width:', 'border-right-width:', 'border-left-width:', 'border-top-color:'], correct: 1, topic: 'CSS' },
-      { q: 'Төменгі шекараның түсі қалай анықталады________________________?', options: ['border-top-color:', 'border-bottom-color:', 'border-right-color:', 'border-left-color:', 'border-bottom-width:'], correct: 1, topic: 'CSS' },
-      { q: 'Төрт шекараның түсін бір уақытта көрсетуге арналған қасиет _______________?', options: ['border-color', 'border-bottom-color:', 'border-right-color:', 'border-left-color:', 'border-bottom-width:'], correct: 0, topic: 'CSS' },
-      { q: 'Линия түрі _________ — бұл мәнді қолданғанда блок дөңес (көтеріңкі) болып көрінеді.', options: ['dotted', 'groove', 'ridge', 'inset', 'outset'], correct: 4, topic: 'CSS' },
-      { q: 'Линия түрі __________________ — шекара дөңес сызық түрінде көрінеді.', options: ['dotted', 'groove', 'ridge', 'inset', 'outset'], correct: 2, topic: 'CSS' },
-      { q: '___________________ қасиеті фондық суреттің құжатпен бірге жылжитынын немесе жылжымайтынын анықтайды.', options: ['background-repeat:', 'background-attachment:', 'background-position:', 'background-origin', 'background-size'], correct: 1, topic: 'CSS' },
-      { q: '_____________________ қасиеті фондық суреттің вертикаль және горизонталь бағытта қайталануын анықтайды.', options: ['background-repeat:', 'background-attachment:', 'background-position:', 'background-origin', 'background-size'], correct: 0, topic: 'CSS' },
-      { q: '_____________________ көмегімен мәтінді астын сызу, үстінен сызу немесе сызып тастау жасауға болады.', options: ['text-decoration', 'text-indent', 'text-align', 'text-decoration', 'line-through'], correct: 0, topic: 'CSS' },
-      { q: '________________ көмегімен абзацтың бірінші жолындағы бірінші сөздің шегінісін беруге болады.', options: ['text-decoration', 'text-indent', 'text-align', 'text-decoration', 'line-through'], correct: 1, topic: 'CSS' },
-      { q: '____________ қасиеті мәтінді стилдік блоктың ішіндегі туралауды анықтайды.', options: ['text-decoration', 'text-indent', 'text-align', 'text-decoration', 'line-through'], correct: 2, topic: 'CSS' },
-      { q: 'text-decoration қасиетінің ____________ мәні берілсе, мәтіннің әр жолы астынан сызылады.', options: ['underline', 'overline', 'line-through', 'none', 'text-indent'], correct: 0, topic: 'CSS' },
-      { q: '__________________ CSS қасиеті әріптер арасындағы қашықтықты орнатады.', options: ['letter-spacing', 'letterspacing.normal', 'wordspacing', 'lineheight', 'text-decoration'], correct: 0, topic: 'CSS' },
-      { q: '___________________ қасиеті мәтіндегі әріптердің регистрін (үлкен/кіші) түрлендіреді.', options: ['text-transform', 'text-decoration', 'text-indent', 'text-align', 'text-decoration'], correct: 0, topic: 'CSS' },
-      { q: '___________________ қасиеті мәтіндегі сызықтың орналасуын анықтайды.', options: ['text-decoration-line', 'text-decoration-style', 'text-decoration-color', 'text-transform', 'text-decoration'], correct: 0, topic: 'CSS' },
-      { q: '_________________________ қасиеті анимацияның орындалу уақытын орнатады.', options: ['animation-duration', 'animation-name', 'animation-delay', 'animation-timing-function', 'animation-iteration-count'], correct: 0, topic: 'CSS' },
-      { q: '________________________ қасиеті анимация аяқталғаннан кейін оның қандай күйде қалатынын анықтайды.', options: ['animation-duration', 'animation-name', 'animation-delay', 'animation-timing-function', 'animation-fill-mode'], correct: 4, topic: 'CSS' },
-      { q: '_______________ қасиеті — анимацияға арналған қысқаша (сокращённая) қасиет, барлық параметрлерді бірден орнатуға мүмкіндік береді.', options: ['animation-duration', 'animation-name', 'animation', 'animation-timing-function', 'animation-fill-mode'], correct: 2, topic: 'CSS' },
-      { q: '________________ қасиеті элементтің трансформациялары қай нүктеге қатысты орындалатынын анықтайды.', options: ['transform-origin', 'transform', 'rotate()', 'rotateX', 'rotateY'], correct: 0, topic: 'CSS' },
-      { q: '_________________ қасиеті элементтің тышқан оқиғаларына реакциясын өшіруге мүмкіндік береді.', options: ['pointer-events', 'user-select', 'selection', 'opacity', 'hue-rotate'], correct: 0, topic: 'CSS' },
-      { q: 'ul тізімінде нүктелердің орнына квадрат немесе шеңбер, ал ol тізімінде рим сандары немесе әріптер қолдануға мүмкіндік беретін қасиет.', options: ['list-style-type', 'caret-color', 'list-style-image', 'list-style', 'lineheight'], correct: 0, topic: 'CSS' },
-      { q: 'list-style-type, list-style-image және list-style-position қасиеттерін бір уақытта орнатуға мүмкіндік беретін қасиет.', options: ['list-style-type', 'caret-color', 'list-style-image', 'list-style', 'lineheight'], correct: 3, topic: 'CSS' },
-
-      { q: 'Құжаттың басқа жерінде қайта қолдануға болатын, өз алдына бөлек бөлікті сипаттайтын элемент.', options: ['<article>', 'profile', '<section>', '<aside>', 'style'], correct: 0, topic: 'HTML' },
-      { q: 'Кестедегі жолдар саны қандай тегтердің санына байланысты анықталады.', options: ['UL', '<TR>', '<TD>', 'THEAD', '<TH>'], correct: 1, topic: 'HTML' },
-      { q: 'Кестедегі негізгі мазмұндық жолдар тобын білдіретін тег.', options: ['Тег TBODY', '<TR>', '<TD>', 'THEAD', '<TH>'], correct: 0, topic: 'HTML' },
-      { q: 'Элементті жасыруға мүмкіндік беретін логикалық атрибут.', options: ['contenteditable', 'hidden', 'tabindex', 'draggable', 'style'], correct: 1, topic: 'HTML' },
-      { q: 'Пайдаланушыға тег ішіндегі мазмұнды өңдеуге рұқсат беруді анықтайтын атрибут.', options: ['contenteditable', 'hidden', 'tabindex', 'draggable', 'translate'], correct: 0, topic: 'HTML' },
-      { q: 'Пайдаланушыға тег ішіндегі мазмұнды өңдеуге рұқсат беруді анықтайтын атрибут.', options: ['contenteditable', 'hidden', 'tabindex', 'draggable', 'translate'], correct: 0, topic: 'HTML' },
-      { q: '= "символ" — пернетақтадағы пернені тағайындауға мүмкіндік беретін атрибут, басқанда тегті іске қосады немесе ерекшелейді.', options: ['dropzone', 'accesskey', 'profile', 'tabindex', 'hidden'], correct: 1, topic: 'HTML' },
-      { q: 'Беттің автономды (өздігінен бөлек) бөлімін білдіретін элемент.', options: ['<section>', 'hidden', 'COLGROUP', '<article>', 'profile'], correct: 0, topic: 'HTML' },
-      { q: 'Жолды мәжбүрлі түрде жаңа жолға ауыстыратын элемент.', options: ['nav тегі', 'P тегі', 'BR тегі', '<abbr> тегі', '<section> тегі'], correct: 2, topic: 'HTML' },
-      { q: 'Кестедегі бағандардың (жолдар тобының) төменгі бөлігін (аяғын) білдіретін тег.', options: ['FOOTER тегі', 'TBODY тегі', 'THEAD тегі', 'TFOOT тегі', 'COLGROUP тегі'], correct: 3, topic: 'HTML' },
-      { q: 'Элементке қолданылатын CSS стильдерін сипаттайтын қасиет.', options: ['draggable атрибуты', 'translate атрибуты', 'style атрибуты', 'hidden атрибуты', 'profile атрибуты'], correct: 2, topic: 'HTML' },
-      { q: 'HTML абзацтарға бөлуді жүзеге асыратын тег қандай?', options: ['P тегі', 'NAV тегі', 'BODY тегі', 'BR тегі', 'THEAD тегі'], correct: 0, topic: 'HTML' },
-      { q: 'HTML құжаты жылжытылған жағдайда да салыстырмалы сілтемелерді дұрыс жұмыс істеуін қамтамасыз ететін тег.', options: ['<HREF> тегі', 'BODY тегі', 'NAV тегі', 'BASE тегі', 'LINK тегі'], correct: 3, topic: 'HTML' },
-      { q: 'title атрибутымен бірге қолданылып, аббревиатураның толық мағынасын көрсететін тег.', options: ['<abbr> тегі', '<acronym> тегі', 'accesskey атрибуты', '<dfn> тегі', 'dropzone атрибуты'], correct: 1, topic: 'HTML' },
-      { q: 'Бетті автоматты аудару кезінде тег ішіндегі мазмұнның аударылатынын немесе аударылмайтынын анықтайтын атрибут.', options: ['dropzone атрибуты', 'translate атрибуты', 'accesskey атрибуты', 'profile атрибуты', 'FOOTER тегі'], correct: 1, topic: 'HTML' },
-      { q: 'Мәтінді ерекшелеу (акцент беру) үшін қолданылатын тег.', options: ['FOOTER тегі', '<TD> тегі', '<em> тегі', '<p> тегі', 'CAPTION тегі'], correct: 2, topic: 'HTML' },
-      { q: 'Қай тег мәтінді анықтама (definition) ретінде белгілейді?', options: ['<dfn> тегі', '<cite> тегі', '<em> тегі', '<code> тегі', '<i> тегі'], correct: 0, topic: 'HTML' },
-      { q: 'Тегтің мазмұнын сүйреп апаруға болатынын немесе болмайтынын анықтайды.', options: ['style атрибуты', 'draggable атрибуты', 'translate атрибуты', 'accesskey атрибуты', 'tabindex атрибуты'], correct: 1, topic: 'HTML' },
-      { q: 'Мәні 0-ден 32767-ге дейінгі сан болатын, Tab пернесін басу арқылы ауысу ретін анықтайтын атрибут.', options: ['translate атрибуты', 'dropzone атрибуты', 'hidden атрибуты', 'tabindex атрибуты', 'accesskey атрибуты'], correct: 3, topic: 'HTML' },
-      { q: 'Тег мазмұны үшін мәтін бағытын көрсетуге мүмкіндік береді.', options: ['href', 'HEADER', 'CAPTION', 'dir', '<dfn>'], correct: 3, topic: 'HTML' },
-      { q: 'UL тегі ………', options: ['реттелмеген тізімдер', 'мәтінді форматтау', 'реттелген тізімдер', 'жолдық тег', 'тізімдік тег'], correct: 0, topic: 'HTML' },
-      { q: 'UL және OL тізімдері қандай тег арқылы элементтерден тұрады?', options: ['LI тегі', 'LINK тегі', '<TD> тегі', '<b> тегі', '<code> тегі'], correct: 0, topic: 'HTML' },
-      { q: 'HEAD тегінің сыртқы мета-файлды көрсететін атрибуты.', options: ['profile', 'accesskey', 'translate', 'dropzone', 'CAPTION'], correct: 0, topic: 'HTML' },
-      { q: 'Кестенің атауын (тақырыбын) анықтайтын тег.', options: ['<abbr> тегі', 'COLGROUP тегі', 'META тегі', 'CAPTION тегі', '<TD> тегі'], correct: 3, topic: 'HTML' },
-      { q: 'Құжат туралы ақпаратты қамтитын төменгі колонтитул.', options: ['FOOTER', '<cite>', '<em>', 'HEADER', 'NAV'], correct: 0, topic: 'HTML' },
-      { q: 'Кестенің тақырып бөлігін білдіретін жолдар тобын анықтайтын тег.', options: ['THEAD тегі', 'HEADER тегі', 'TBODY тегі', 'TFOOT тегі', 'CAPTION тегі'], correct: 0, topic: 'HTML' },
-      { q: 'HTML құжатының тақырып бөлігін анықтайтын тег.', options: ['THEAD тегі', 'HEADER тегі', 'TBODY тегі', 'TFOOT тегі', 'CAPTION тегі'], correct: 1, topic: 'HTML' },
-      { q: 'Браузерге HTML стандарты қолданылғанын көрсететін тег.', options: ['draggable атрибуты', 'accesskey атрибуты', '<!DOCTYPE html>', '<HEAD>', '<BODY>'], correct: 2, topic: 'HTML' },
-      { q: 'Құжат туралы ақпаратты қамтуға арналған тег.', options: ['<HEAD>', 'hidden', '<code>', 'draggable', 'accesskey'], correct: 0, topic: 'HTML' },
-      { q: 'Мәтінді форматтау үшін қандай тәсілдер қолданылады?', options: ['тег мазмұнын өңдеуге рұқсат беретін атрибут', 'drag-and-drop әрекеттерін анықтайтын атрибут', 'құжат құрылымын беру және тікелей(физикалық) форматтау элементтерін қолдану', 'HTML құжатының тақырып бөлігін анықтайтын тег', 'барлық жауап дұрыс'], correct: 2, topic: 'HTML' },
-      { q: 'Браузерлер мен іздеу жүйелеріне арналған ақпаратты сақтайтын метатегтерді анықтайды.', options: ['BODY тегі', 'CAPTION тегі', 'META тегі', 'FOOTER тегі', 'THEAD тегі'], correct: 2, topic: 'HTML' },
-      { q: 'Оның ішіндегі ақпарат әдетте қалың қаріппен көрсетіліп, ұяшықтың ортасына тураланады.', options: ['<em> тегі', '<TD> тегі', '<TH> тегі', '<strong> тегі', '<abbr> тегі'], correct: 2, topic: 'HTML' },
-      { q: '< ! - - Текст - - > нені білдіреді?', options: ['беттің автономды бөлігі', 'құжат туралы ақпарат сақтайтын тег', 'HTML стандарты қолданылғанын көрсететін тег', 'комментарий тегтері', 'дұрыс жауап жоқ'], correct: 3, topic: 'HTML' },
-      { q: '…………… элементі компьютерлік бағдарлама немесе скрипт нәтижесін көрсету үшін қолданылады.', options: ['<code> тегі', '<samp> тегі', '<dfn> тегі', '<abbr> тегі', '<strong> тегі'], correct: 1, topic: 'HTML' },
-
-      { q: '__________ — орындалу кезінде интерпретацияланатын бағдарламалық нұсқаулар жиынтығы.', options: ['Скрипт', 'PHP', 'Бағдарламалау тілінің лексикалық құрылымы', 'Оператор', 'Массив'], correct: 0, topic: 'PHP' },
-      { q: 'Айнымалы атаулары әрқашан қай таңбадан басталуы керек?', options: ['<php>', '<?php ... ?>', '<script>', '<code>', '($)'], correct: 4, topic: 'PHP' },
-      { q: 'Константаларды анықтау үшін қандай функция қолданылады?', options: ['define()', 'combine()', 'concatenate()', 'merge()', 'const'], correct: 0, topic: 'PHP' },
-      { q: '__________ командасы жолдар мен сандарды шығарады, сонымен қатар олардың типін және өлшемін көрсетеді.', options: ['Int', 'Var', 'Echo', '$ int', 'var_dump'], correct: 4, topic: 'PHP' },
-      { q: 'Функция ішінде ғаламдық айнымалыға қол жеткізу үшін қандай кілт сөз қолданылады?', options: ['global', 'counter', 'now', 'time', 'date'], correct: 0, topic: 'PHP' },
-      { q: 'Статикалық айнымалыны жариялау үшін қандай кілт сөз қолданылады?', options: ['Static', 'Function', 'Echo', 'var_dump', 'global'], correct: 0, topic: 'PHP' },
-      { q: 'Сценарийдің орындалуын дереу тоқтату үшін қандай оператор қолданылады?', options: ['exit', 'return', 'check()', 'isset()', 'break'], correct: 0, topic: 'PHP' },
-      { q: 'PHP-де массивті қалай жариялауға болады?', options: ['array{}', 'array()', '[]', '{}', 'rray()'], correct: 1, topic: 'PHP' },
-      { q: 'Айнымалының анықталғанын қалай тексеруге болады?', options: ['check()', 'isset()', 'is_set()', 'exists()', 'defined()'], correct: 1, topic: 'PHP' },
-      { q: 'PHP скриптін аяқтау үшін қандай әдіс қолданылады?', options: ['die()', 'exit()', 'stop()', 'end()', 'halt()'], correct: 1, topic: 'PHP' },
-      { q: 'Скрипт (сценарий) дегеніміз не?', options: ['орындалу кезінде интерпретацияланатын бағдарламалық нұсқаулар жиынтығы', 'орындалу кезінде интерпретацияланатын тіл, скрипттер басқа ортаға енгізіледі', 'серверде орындалатын скрипттер', 'веб-сайттар жасауға арналған бағдарламалау тілі', 'серверлік және клиенттік скрипттер туралы түсінік'], correct: 0, topic: 'PHP' },
-      { q: '\\n символы нені білдіреді?', options: ['табуляция белгісі', 'байланыс (привязка)', 'тік табуляция', 'жаңа жол', 'жаңа баған'], correct: 3, topic: 'PHP' },
-      { q: 'PHP-де көпжолды комментарийді қалай жазуға болады?', options: ['//', '*', '##', '–', '///'], correct: 1, topic: 'PHP' },
-      { q: 'PHP-де объектіні қалай құруға болады?', options: ['new Object()', 'Object()', 'new ClassName()', 'class ClassName {}', 'ClassName()'], correct: 0, topic: 'PHP' },
-      { q: '\\t символы нені білдіреді?', options: ['табуляция белгісі', 'байланыс', 'тік табуляция', 'жаңа жол', 'жаңа баған'], correct: 0, topic: 'PHP' },
-      { q: '_______________ функциясы екі берілген мәннің арасындағы тізбекті сандар немесе символдар массивін құрады.', options: ['range()', 'new Object()', 'Object()', 'new ClassName()', 'halt()'], correct: 0, topic: 'PHP' },
-      { q: 'Массивтегі элементтер санын қайтаратын функциялар қандай?', options: ['new Object()', 'Object()', 'new ClassName()', 'class ClassName {}', 'count(), sizeof()'], correct: 4, topic: 'PHP' },
-      { q: 'Массивтің барлық элементтерін айнымалыларға көшіру үшін қандай конструкция қолданылады?', options: ['range()', 'count()', 'sizeof()', 'list()', 'copy()'], correct: 3, topic: 'PHP' },
-      { q: 'Массивті бірнеше кіші массивтерге бөлу үшін қандай функция қолданылады?', options: ['array chunk()', 'array_slice()', 'array_keys()', 'array_key_exists()', 'list()'], correct: 0, topic: 'PHP' },
-      { q: '_______________ функциясы тек кілттерден тұратын массивті қайтарады.', options: ['array chunk()', 'array_slice()', 'array_keys()', 'array_key_exists()', 'list()'], correct: 2, topic: 'PHP' },
-
-      { q: '_____________________ — өзара байланысты ақпаратты қамтитын өрістер жиынтығы.', options: ['Жазба (record)', 'Кесте (table)', 'Мән (entity)', 'Индекс (index)', 'Көріністер (views)'], correct: 0, topic: 'SQL' },
-      { q: '_______________ — бір немесе бірнеше кестелерден не көріністерден алынған деректердің біртұтас көрінісін ұсынады.', options: ['Жазба (record)', 'Кесте (table)', 'Мән (entity)', 'Индекс (index)', 'Көріністер (views)'], correct: 4, topic: 'SQL' },
-      { q: 'ДҚ-дағы деректер типтері: MEDIUMTEXT қандай ұзындықтағы мәтінді сақтай алады?', options: ['255 символ', '65535 символ', '65 КБ', '16 МБ', '4 ГБ'], correct: 3, topic: 'SQL' },
-      { q: 'CREATE операторы не істейді?', options: ['әртүрлі объектілерді құрады', 'деректер қорынан ақпарат таңдайды', 'жазба қосады', 'жазбаны/жазбаларды жаңартады', 'жазбаны/жазбаларды жояды'], correct: 0, topic: 'SQL' },
-      { q: 'WHERE параметрі не үшін қолданылады?', options: ['таңдалатын жазбаларды анықтайтын шартты көрсету үшін', 'сұрыптау орындалатын өрісті көрсету үшін', 'жазбаны өзгерту үшін', 'әдепкі мәнді орнату үшін', 'жазбаны жою үшін'], correct: 0, topic: 'SQL' },
-      { q: 'ORDER BY параметрі не үшін қолданылады?', options: ['жазбаларды таңдау шартын көрсету үшін', 'сұрыптау орындалатын өрісті көрсету үшін', 'жазбаны өзгерту үшін', 'әдепкі мәнді орнату үшін', 'жазбаны жою үшін'], correct: 1, topic: 'SQL' },
-      { q: 'DEFAULT мәні нені білдіреді?', options: ['таңдау шартын көрсету', 'сұрыптау өрісін көрсету', 'өзгерту үшін', 'кесте құрылғанда берілген әдепкі мәнді орнатады', 'жою үшін'], correct: 3, topic: 'SQL' }
-    ];
-
-    // =========================
-    // EXTRA QUESTIONS FROM USER
-    // user sent these later; they override same-text questions
-    // =========================
-    const extraQuestions = [
-      { q: 'Қай тег мәтінді анықтама (definition) ретінде белгілейді?', options: ['<dfn> тегі', '<cite> тегі', '<em> тегі', '<code> тегі', '<i> тегі'], correct: 0, topic: 'HTML' },
-      { q: 'Тегтің мазмұнын сүйреп апаруға болатынын немесе болмайтынын анықтайды.', options: ['style атрибуты', 'draggable атрибуты', 'translate атрибуты', 'accesskey атрибуты', 'tabindex атрибуты'], correct: 3, topic: 'HTML' },
-      { q: 'Мәні 0-ден 32767-ге дейінгі сан болатын, Tab пернесін басу арқылы ауысу ретін анықтайтын атрибут.', options: ['translate атрибуты', 'dropzone атрибуты', 'hidden атрибуты', 'tabindex атрибуты', 'accesskey атрибуты'], correct: 3, topic: 'HTML' },
-      { q: 'Тег мазмұны үшін мәтін бағытын көрсетуге мүмкіндік береді.', options: ['href', 'HEADER', 'CAPTION', 'dir', '<dfn>'], correct: 3, topic: 'HTML' },
-      { q: 'UL тегі ………', options: ['реттелмеген тізімдер', 'мәтінді форматтау', 'реттелген тізімдер', 'жолдық тег', 'тізімдік тег'], correct: 0, topic: 'HTML' },
-      { q: 'UL және OL тізімдері қандай тег арқылы элементтерден тұрады?', options: ['LI тегі', 'LINK тегі', '<TD> тегі', '<b> тегі', '<code> тегі'], correct: 0, topic: 'HTML' },
-      { q: 'HEAD тегінің сыртқы мета-файлды көрсететін атрибуты.', options: ['profile', 'accesskey', 'translate', 'dropzone', 'CAPTION'], correct: 0, topic: 'HTML' },
-      { q: 'Кестенің атауын (тақырыбын) анықтайтын тег.', options: ['<abbr> тегі', 'COLGROUP тегі', 'META тегі', 'CAPTION тегі', '<TD> тегі'], correct: 3, topic: 'HTML' },
-      { q: 'Құжат туралы ақпаратты қамтитын төменгі колонтитул.', options: ['FOOTER', '<cite>', '<em>', 'HEADER', 'NAV'], correct: 0, topic: 'HTML' },
-      { q: 'Кестенің тақырып бөлігін білдіретін жолдар тобын анықтайтын тег.', options: ['THEAD тегі', 'HEADER тегі', 'TBODY тегі', 'TFOOT тегі', 'CAPTION тегі'], correct: 0, topic: 'HTML' },
-      { q: 'HTML құжатының тақырып бөлігін анықтайтын тег.', options: ['THEAD тегі', 'HEADER тегі', 'TBODY тегі', 'TFOOT тегі', 'CAPTION тегі'], correct: 1, topic: 'HTML' },
-      { q: 'Браузерге HTML стандарты қолданылғанын көрсететін тег.', options: ['draggable атрибуты', 'accesskey атрибуты', '<!DOCTYPE html>', '<HEAD>', '<BODY>'], correct: 2, topic: 'HTML' },
-      { q: 'Құжат туралы ақпаратты қамтуға арналған тег.', options: ['<HEAD>', 'hidden', '<code>', 'draggable', 'accesskey'], correct: 0, topic: 'HTML' },
-      { q: 'Мәтінді форматтау үшін қандай тәсілдер қолданылады?', options: ['тег мазмұнын өңдеуге рұқсат беретін атрибут', 'drag-and-drop әрекеттерін анықтайтын атрибут', 'құжат құрылымын беру және тікелей(физикалық) форматтау элементтерін қолдану', 'HTML құжатының тақырып бөлігін анықтайтын тег', 'барлық жауап дұрыс'], correct: 2, topic: 'HTML' },
-      { q: 'Браузерлер мен іздеу жүйелеріне арналған ақпаратты сақтайтын метатегтерді анықтайды.', options: ['BODY тегі', 'CAPTION тегі', 'META тегі', 'FOOTER тегі', 'THEAD тегі'], correct: 2, topic: 'HTML' },
-      { q: 'Оның ішіндегі ақпарат әдетте қалың қаріппен көрсетіліп, ұяшықтың ортасына тураланады.', options: ['<em> тегі', '<TD> тегі', '<TH> тегі', '<strong> тегі', '<abbr> тегі'], correct: 2, topic: 'HTML' },
-      { q: '< ! - - Текст - - > нені білдіреді?', options: ['беттің автономды бөлігі', 'құжат туралы ақпарат сақтайтын тег', 'HTML стандарты қолданылғанын көрсететін тег', 'комментарий тегтері', 'дұрыс жауап жоқ'], correct: 3, topic: 'HTML' },
-      { q: '…………… элементі компьютерлік бағдарлама немесе скрипт нәтижесін көрсету үшін қолданылады.', options: ['<code> тегі', '<samp> тегі', '<dfn> тегі', '<abbr> тегі', '<strong> тегі'], correct: 3, topic: 'HTML' },
-
-      { q: '____________ әдісі енгізу өрісі, хабарлама және OK мен Cancel батырмалары бар диалогтық терезені көрсетеді.', options: ['prompt()', 'splice()', 'confirm()', 'shift()', 'alert()'], correct: 0, topic: 'JS' },
-      { q: '____________ операторы айнымалының деректер типін сипаттайтын жолды қайтарады.', options: ['unshift()', 'typeof', 'pop()', 'some()', 'push()'], correct: 1, topic: 'JS' },
-      { q: 'Мүмкін болған жағдайда жолды бүтін санға түрлендіретін функция.', options: ['parseInt()', 'parseFloat()', 'eval()', 'indexOf()', 'join()'], correct: 0, topic: 'JS' },
-      { q: 'Мүмкін болған жағдайда жолды қалқымалы үтірлі санға түрлендіретін функция.', options: ['parseInt()', 'parseFloat()', 'eval()', 'indexOf()', 'join()'], correct: 1, topic: 'JS' },
-      { q: 'Жолдағы өрнекті кәдімгі JavaScript өрнегі сияқты есептейтін функция.', options: ['parseInt()', 'parseFloat()', 'eval()', 'indexOf()', 'join()'], correct: 2, topic: 'JS' },
-      { q: 'Массивтегі элементтер саны қандай қасиет арқылы анықталады?', options: ['Boolean', 'Object', 'concat()', 'length', 'push()'], correct: 3, topic: 'JS' },
-      { q: 'else-блогы жоқ шартты оператордың түрі.', options: ['шарт', 'жеңілдетілген форма', 'глобал айнымалы', 'өрнек', 'массив'], correct: 1, topic: 'JS' },
-      { q: 'Массивтен элемент іздеуге арналған, бірақ іздеу соңынан басталатын әдіс.', options: ['reverse()', 'lastIndexOf()', 'push()', 'forEach()', 'indexOf()'], correct: 1, topic: 'JS' },
-      { q: 'Әрбір массив элементі үшін аргумент ретінде берілген функцияны шақыратын әдіс.', options: ['concat()', 'reverse()', 'forEach()', 'every()', 'indexOf()'], correct: 2, topic: 'JS' },
-      { q: 'Бірнеше массивтерді біріктіру арқылы жаңа массив құратын әдіс.', options: ['concat()', 'reverse()', 'reduce()', 'push()', 'sort()'], correct: 0, topic: 'JS' },
-      { q: 'Массивтің соңына элементтер қосуға арналған әдіс.', options: ['splice()', 'join()', 'reduce()', 'push()', 'sort()'], correct: 3, topic: 'JS' },
-      { q: 'Массивтің басындағы элементті жоятын әдіс.', options: ['unshift()', 'shift()', 'pop()', 'push()', 'sort()'], correct: 1, topic: 'JS' },
-      { q: 'Бинарлық ИЛИ (OR) операциясы — операндтардың біреуі true болса, ақиқат болады.', options: ['||', '&&', '!', '!=', '%'], correct: 0, topic: 'JS' },
-      { q: 'Унарлық терістеу (NOT) операциясы.', options: ['||', '&&', '!', '!=', '%'], correct: 2, topic: 'JS' },
-      { q: 'Массивтен элемент іздеуге арналған әдіс.', options: ['reduce()', 'lastIndexOf()', 'join()', 'concat()', 'indexOf()'], correct: 4, topic: 'JS' },
-      { q: '__________________ — айнымалылар, тұрақтылар және операторлар жиынтығы.', options: ['reduce()', 'өрнек', 'жеңілдетілген форма', 'unshift()', 'шарт'], correct: 1, topic: 'JS' },
-      { q: 'Ағымдағы итерацияны тоқтатып, келесісіне өтеді.', options: ['continue', 'lastIndexOf()', 'break', 'parseInt', 'indexOf()'], correct: 0, topic: 'JS' },
-      { q: '______________________ — екі индекс, әрқайсысы бөлек квадрат жақшаларда беріледі.', options: ['біржолды комментарий', 'көпжолды комментарий', 'екіөлшемді массив', 'бірөлшемді массив', 'шарт'], correct: 2, topic: 'JS' },
-      { q: 'Бинарлық ЖӘНЕ (AND) операциясы — екі операнд та ақиқат болғанда ғана ақиқат.', options: ['||', '&&', '!', '!=', '%'], correct: 1, topic: 'JS' },
-      { q: 'Массивтің бір бөлігін жойып, оның орнына жаңа фрагмент енгізетін әдіс.', options: ['join()', 'reverse()', 'reduce()', 'slice()', 'splice()'], correct: 4, topic: 'JS' },
-      { q: 'Массив негізінде бір мән есептеп шығаратын және элементтерді тізбектей өңдейтін әдіс.', options: ['reduceRight()', 'reverse()', 'lastIndexOf()', 'splice()', 'reverse()'], correct: 0, topic: 'JS' },
-      { q: 'Әр элементке берілген функцияны қолданып, жаңа массив жасайтын әдіс.', options: ['some()', 'filter()', 'map()', 'splice()', 'pop()'], correct: 2, topic: 'JS' },
-      { q: 'if шартты операторы не істейді?', options: ['жолдағы өрнекті есептейді', 'шарттың ақиқат/жалған болуына қарай әртүрлі командаларды орындайды', 'функция ішінде жарияланған айнымалы', 'if, switch', 'массив элементіне мән беру'], correct: 1, topic: 'JS' },
-      { q: 'Салыстыру операторлары негізінде құрылған логикалық өрнек.', options: ['alert() әдісі', 'шарт', 'айнымалы', 'глобал айнымалы', 'санауышы бар цикл'], correct: 1, topic: 'JS' },
-      { q: 'Массивті бір мәнге келтіру үшін қолданылатын әдіс.', options: ['concat()', 'reverse()', 'reduce()', 'slice()', 'splice()'], correct: 2, topic: 'JS' },
-      { q: 'Кемінде бір элемент шартты қанағаттандырса true қайтаратын әдіс.', options: ['some()', 'sort()', 'reduce()', 'slice()', 'forEach()'], correct: 0, topic: 'JS' },
-      { q: 'JavaScript-та айнымалыны қандай қызметтік сөзбен жариялауға болады?', options: ['var, let', 'int', 'char', 'Var', '$ int'], correct: 0, topic: 'JS' },
-      { q: 'Екі мән қабылдайтын (true/false) логикалық деректер типі.', options: ['int', 'char', 'for', 'float', 'boolean'], correct: 4, topic: 'JS' },
-      { q: 'Массив элементтерін кері ретпен қайта сұрыптауға арналған әдіс.', options: ['join()', 'sort()', 'reduce()', 'reverse()', 'reduceRight()'], correct: 3, topic: 'JS' },
-      { q: 'Массив элементтерінің мәндері негізінде мәтіндік жол құруға арналған әдіс.', options: ['join()', 'indexOf()', 'reduce()', 'lastIndexOf()', 'push()'], correct: 0, topic: 'JS' }
-    ];
-
-    // =========================
-    // BUILD FINAL QUESTION BANK
-    // =========================
-    function normalizeQuestionText(text){
-      return String(text || '')
-        .toLowerCase()
-        .replace(/\s+/g,' ')
-        .replace(/[“”"']/g,'')
-        .trim();
-    }
-
-    function sanitizeQuestion(item){
-      const options = Array.isArray(item.options) ? item.options.slice(0,5) : [];
-      while(options.length < 5) options.push('Жауап жоқ');
-      const fixedOptions = options.map((opt, index) => {
-        const val = String(opt ?? '').trim();
-        return val === '' ? `Жауап ${index + 1}` : val;
-      });
-      let correct = Number(item.correct);
-      if (!Number.isInteger(correct) || correct < 0 || correct > 4) correct = 0;
-
-      return {
-        q: String(item.q || '').trim(),
-        options: fixedOptions,
-        correct,
-        topic: String(item.topic || 'Жалпы').trim()
-      };
-    }
-
-    const mergedMap = new Map();
-    [...baseQuestions, ...extraQuestions].forEach(item => {
-      const safe = sanitizeQuestion(item);
-      if (!safe.q) return;
-      mergedMap.set(normalizeQuestionText(safe.q), safe); // кейінгі сұрақ ертеректісін override етеді
-    });
-
-    const allQuestions = Array.from(mergedMap.values()).map((q, index) => ({
-      id: index + 1,
-      ...q
-    }));
-
-    // =========================
-    // APP STATE
-    // =========================
-    let currentMode = '';
-    let currentQuestions = [];
-    let currentIndex = 0;
-    let score = 0;
-    let answered = false;
-    let timerInterval = null;
-    let autoNextTimeout = null;
-    let timeLeft = 0;
-    let questionTimes = [];
-    let questionStartTime = 0;
-    let playerName = '';
-    let pendingMode = '';
-
-    let learnMastered = new Set();
-    let learnLearning = new Set();
-    let learnWrong = [];
-
-    let flashIndex = 0;
-    let flashQuestions = [];
-
-    let activeTopicFilter = 'all';
-
-    // local storage
-    let mistakeIds = JSON.parse(localStorage.getItem('web_mistake_ids_v3') || '[]');
-    let totalAttempts = parseInt(localStorage.getItem('web_total_attempts_v3') || '0');
-    let totalCorrect = parseInt(localStorage.getItem('web_total_correct_v3') || '0');
-    let bestScore = parseInt(localStorage.getItem('web_best_score_v3') || '0');
-    let testHistory = JSON.parse(localStorage.getItem('web_test_history_v3') || '[]');
-
-    document.getElementById('header-subtitle').textContent = `HTML, CSS, JS, PHP, SQL | ${allQuestions.length} сұрақ`;
-    updateGlobalStats();
-
-    // =========================
-    // HELPERS
-    // =========================
-    function shuffle(arr){
-      const a = [...arr];
-      for(let i = a.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    function getTopics(){
-      const topics = {};
-      allQuestions.forEach(q => {
-        if(!topics[q.topic]) topics[q.topic] = [];
-        topics[q.topic].push(q);
-      });
-      return topics;
-    }
-
-    function saveStats(){
-      localStorage.setItem('web_mistake_ids_v3', JSON.stringify(mistakeIds));
-      localStorage.setItem('web_total_attempts_v3', totalAttempts);
-      localStorage.setItem('web_total_correct_v3', totalCorrect);
-      localStorage.setItem('web_best_score_v3', bestScore);
-      localStorage.setItem('web_test_history_v3', JSON.stringify(testHistory));
-    }
-
-    function updateGlobalStats(){
-      const avgPercent = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-      document.getElementById('global-stats').innerHTML = `
-        <div class="stat-item">
-          <div class="num">${allQuestions.length}</div>
-          <div class="label">Барлық сұрақ</div>
-        </div>
-        <div class="stat-item">
-          <div class="num">${totalAttempts}</div>
-          <div class="label">Жауап берілді</div>
-        </div>
-        <div class="stat-item">
-          <div class="num">${avgPercent}%</div>
-          <div class="label">Орташа дұрыс</div>
-        </div>
-        <div class="stat-item">
-          <div class="num">${bestScore}</div>
-          <div class="label">Үздік (/30)</div>
-        </div>
-        <div class="stat-item">
-          <div class="num">${mistakeIds.length}</div>
-          <div class="label">Қате сұрақ</div>
-        </div>
-      `;
-    }
-
-    function clearAllTimers(){
-      clearInterval(timerInterval);
-      clearTimeout(autoNextTimeout);
-    }
-
-    function showScreen(id){
-      document.querySelectorAll('.quiz-area').forEach(el => el.classList.remove('active'));
-      document.getElementById('main-menu-screen').classList.add('hidden');
-
-      if(id === 'main-menu'){
-        document.getElementById('main-menu-screen').classList.remove('hidden');
-        updateGlobalStats();
-      }else{
-        document.getElementById(id).classList.add('active');
-      }
-    }
-
-    function goHome(){
-      clearAllTimers();
-      currentMode = '';
-      showScreen('main-menu');
-    }
-
-    // =========================
-    // NAME / START
-    // =========================
-    function askNameAndStart(mode){
-      pendingMode = mode;
-      showScreen('name-screen');
-      const savedName = localStorage.getItem('web_last_player_name_v3') || '';
-      document.getElementById('playerNameInput').value = savedName;
-      setTimeout(() => document.getElementById('playerNameInput').focus(), 80);
-    }
-
-    function confirmNameAndStart(){
-      const value = document.getElementById('playerNameInput').value.trim();
-      if(!value){
-        alert('Атыңды жазып жібер.');
-        return;
-      }
-      playerName = value;
-      localStorage.setItem('web_last_player_name_v3', value);
-
-      if(pendingMode === 'exam') startExam();
-      if(pendingMode === 'speed') startSpeed();
-    }
-
-    // =========================
-    // MODES
-    // =========================
-    function startExam(){
-      currentMode = 'exam';
-      currentQuestions = shuffle(allQuestions).slice(0, 30);
-      currentIndex = 0;
-      score = 0;
-      answered = false;
-      questionTimes = [];
-      timeLeft = 30 * 60;
-
-      showScreen('quiz-screen');
-      document.getElementById('mode-badge-container').innerHTML = '<span class="mode-badge exam">📝 Емтихан режимі — 30 сұрақ</span>';
-      document.getElementById('timer-display').classList.remove('hidden');
-      document.getElementById('timer-bar-box').classList.add('hidden');
-      document.getElementById('speed-indicator').classList.add('hidden');
-      document.getElementById('marathon-progress').classList.add('hidden');
-      document.getElementById('learn-status').classList.add('hidden');
-
-      startExamTimer();
-      showQuestion();
-    }
-
-    function startExamTimer(){
-      clearAllTimers();
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        const min = Math.floor(timeLeft / 60);
-        const sec = timeLeft % 60;
-        document.getElementById('timer-display').textContent = `⏱ ${min}:${String(sec).padStart(2,'0')}`;
-        if(timeLeft <= 0){
-          clearAllTimers();
-          showResults();
-        }
-      }, 1000);
-    }
-
-    function startSpeed(){
-      currentMode = 'speed';
-      currentQuestions = shuffle(allQuestions).slice(0, 30);
-      currentIndex = 0;
-      score = 0;
-      answered = false;
-      questionTimes = [];
-
-      showScreen('quiz-screen');
-      document.getElementById('mode-badge-container').innerHTML = '<span class="mode-badge speed">⚡ 15 секунд режимі — 30 сұрақ</span>';
-      document.getElementById('timer-display').classList.remove('hidden');
-      document.getElementById('timer-bar-box').classList.remove('hidden');
-      document.getElementById('speed-indicator').classList.remove('hidden');
-      document.getElementById('marathon-progress').classList.add('hidden');
-      document.getElementById('learn-status').classList.add('hidden');
-
-      showQuestion();
-    }
-
-    function startSpeedTimer(){
-      clearAllTimers();
-      timeLeft = 15;
-      questionStartTime = Date.now();
-      updateSpeedTimerUI();
-
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        updateSpeedTimerUI();
-
-        if(timeLeft <= 0){
-          clearInterval(timerInterval);
-
-          if(!answered){
-            answered = true;
-            totalAttempts++;
-            questionTimes.push(15);
-
-            const q = currentQuestions[currentIndex];
-            const buttons = document.querySelectorAll('.option-btn');
-            if(buttons[q.correct]) buttons[q.correct].classList.add('correct');
-
-            if(!mistakeIds.includes(q.id)) mistakeIds.push(q.id);
-
-            document.getElementById('explanation').textContent = `⏰ Уақыт бітті! Дұрыс жауап: ${q.options[q.correct]}`;
-            document.getElementById('explanation').classList.add('show');
-            document.getElementById('next-btn').classList.add('show');
-
-            saveStats();
-            updateSpeedIndicator();
-
-            autoNextTimeout = setTimeout(() => {
-              if(currentMode === 'speed') nextQuestion();
-            }, 1300);
-          }
-        }
-      }, 1000);
-    }
-
-    function updateSpeedTimerUI(){
-      const color = timeLeft <= 5 ? '#ff6b6b' : timeLeft <= 10 ? '#ffc107' : '#48cfad';
-      document.getElementById('timer-display').innerHTML = `⏱ <span style="color:${color};font-weight:bold">${timeLeft}</span> секунд`;
-
-      const pct = (timeLeft / 15) * 100;
-      const bar = document.getElementById('timer-bar');
-      bar.style.width = pct + '%';
-      bar.className = 'timer-bar' + (timeLeft <= 5 ? ' danger' : '');
-    }
-
-    function updateSpeedIndicator(){
-      if(questionTimes.length === 0){
-        document.getElementById('speed-indicator').innerHTML = '';
-        return;
-      }
-      const avg = (questionTimes.reduce((a,b)=>a+b,0) / questionTimes.length).toFixed(1);
-      document.getElementById('speed-indicator').innerHTML = `
-        <div class="avg">${avg}с</div>
-        <div class="label">Орташа жауап уақыты</div>
-      `;
-    }
-
-    function startLearn(){
-      currentMode = 'learn';
-      currentQuestions = shuffle(allQuestions);
-      currentIndex = 0;
-      score = 0;
-      answered = false;
-      learnMastered = new Set();
-      learnLearning = new Set();
-      learnWrong = [];
-
-      showScreen('quiz-screen');
-      document.getElementById('mode-badge-container').innerHTML = '<span class="mode-badge learn">🧠 Жаттау режимі</span>';
-      document.getElementById('timer-display').classList.add('hidden');
-      document.getElementById('timer-bar-box').classList.add('hidden');
-      document.getElementById('speed-indicator').classList.add('hidden');
-      document.getElementById('marathon-progress').classList.add('hidden');
-      document.getElementById('learn-status').classList.remove('hidden');
-
-      updateLearnStatus();
-      showQuestion();
-    }
-
-    function updateLearnStatus(){
-      document.getElementById('learn-status').innerHTML = `
-        <span class="learn-stat mastered">✅ Меңгерілді: ${learnMastered.size}</span>
-        <span class="learn-stat learning">📖 Оқуда: ${learnLearning.size}</span>
-        <span class="learn-stat remaining">📋 Қалды: ${Math.max(0, currentQuestions.length - currentIndex)}</span>
-      `;
-    }
-
-    function startMarathon(){
-      currentMode = 'marathon';
-      currentQuestions = [...allQuestions];
-      currentIndex = 0;
-      score = 0;
-      answered = false;
-
-      showScreen('quiz-screen');
-      document.getElementById('mode-badge-container').innerHTML = `<span class="mode-badge marathon">🏃 Марафон — ${allQuestions.length} сұрақ</span>`;
-      document.getElementById('timer-display').classList.add('hidden');
-      document.getElementById('timer-bar-box').classList.add('hidden');
-      document.getElementById('speed-indicator').classList.add('hidden');
-      document.getElementById('marathon-progress').classList.remove('hidden');
-      document.getElementById('learn-status').classList.add('hidden');
-
-      showQuestion();
-    }
-
-    function startMistakes(){
-      if(mistakeIds.length === 0){
-        alert('Қате сұрақтар әзірге жоқ 🎉');
-        return;
-      }
-      currentMode = 'mistakes';
-      currentQuestions = shuffle(allQuestions.filter(q => mistakeIds.includes(q.id))).slice(0, 30);
-      currentIndex = 0;
-      score = 0;
-      answered = false;
-
-      showScreen('quiz-screen');
-      document.getElementById('mode-badge-container').innerHTML = `<span class="mode-badge mistakes">❌ Қателерді қайталау — ${currentQuestions.length} сұрақ</span>`;
-      document.getElementById('timer-display').classList.add('hidden');
-      document.getElementById('timer-bar-box').classList.add('hidden');
-      document.getElementById('speed-indicator').classList.add('hidden');
-      document.getElementById('marathon-progress').classList.add('hidden');
-      document.getElementById('learn-status').classList.add('hidden');
-
-      showQuestion();
-    }
-
-    function startByTopic(){
-      showScreen('topic-select-screen');
-      const topics = getTopics();
-      const container = document.getElementById('topic-cards');
-      const icons = { JS:'🟨', CSS:'🎨', HTML:'🌐', PHP:'🐘', SQL:'🗄️', 'Жалпы':'📚' };
-
-      container.innerHTML = '';
-      Object.entries(topics).forEach(([topic, list]) => {
-        const card = document.createElement('div');
-        card.className = 'menu-card';
-        card.innerHTML = `
-          <div class="icon">${icons[topic] || '📁'}</div>
-          <h3>${topic}</h3>
-          <p>${list.length} сұрақ</p>
-        `;
-        card.onclick = () => startTopicQuiz(topic);
-        container.appendChild(card);
-      });
-    }
-
-    function startTopicQuiz(topic){
-      currentMode = 'topic';
-      currentQuestions = shuffle(getTopics()[topic]);
-      currentIndex = 0;
-      score = 0;
-      answered = false;
-
-      showScreen('quiz-screen');
-      document.getElementById('mode-badge-container').innerHTML = `<span class="mode-badge learn">📂 ${topic} — ${currentQuestions.length} сұрақ</span>`;
-      document.getElementById('timer-display').classList.add('hidden');
-      document.getElementById('timer-bar-box').classList.add('hidden');
-      document.getElementById('speed-indicator').classList.add('hidden');
-      document.getElementById('marathon-progress').classList.add('hidden');
-      document.getElementById('learn-status').classList.add('hidden');
-
-      showQuestion();
-    }
-
-    // =========================
-    // QUESTION FLOW
-    // =========================
-    function showQuestion(){
-      clearTimeout(autoNextTimeout);
-
-      if(currentIndex >= currentQuestions.length){
-        clearAllTimers();
-        showResults();
-        return;
-      }
-
-      answered = false;
-      const q = currentQuestions[currentIndex];
-      const total = currentQuestions.length;
-
-      document.getElementById('progress-bar').style.width = ((currentIndex) / total) * 100 + '%';
-      document.getElementById('question-counter').textContent = `${currentIndex + 1} / ${total}`;
-      document.getElementById('question-text').textContent = `${currentIndex + 1}. ${q.q}`;
-      document.getElementById('next-btn').classList.remove('show');
-      document.getElementById('explanation').classList.remove('show');
-      document.getElementById('explanation').textContent = '';
-
-      if(currentMode === 'marathon'){
-        document.getElementById('marathon-progress').textContent = `🏃 ${currentIndex + 1} / ${allQuestions.length} | ✅ ${score} дұрыс`;
-      }
-
-      const letters = ['A','B','C','D','E'];
-      const container = document.getElementById('options-container');
-      container.innerHTML = '';
-
-      q.options.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
-        btn.onclick = () => selectAnswer(i);
-        container.appendChild(btn);
-      });
-
-      if(currentMode === 'speed') startSpeedTimer();
-      if(currentMode === 'learn') updateLearnStatus();
-    }
-
-    function selectAnswer(index){
-      if(answered) return;
-      answered = true;
-
-      clearTimeout(autoNextTimeout);
-
-      const q = currentQuestions[currentIndex];
-      const btns = document.querySelectorAll('.option-btn');
-      const isCorrect = index === q.correct;
-
-      totalAttempts++;
-
-      if(isCorrect){
-        btns[index].classList.add('correct');
-        score++;
-        totalCorrect++;
-        mistakeIds = mistakeIds.filter(id => id !== q.id);
-
-        if(currentMode === 'learn'){
-          learnMastered.add(q.id);
-          learnLearning.delete(q.id);
-        }
-      }else{
-        btns[index].classList.add('wrong');
-        if(btns[q.correct]) btns[q.correct].classList.add('highlight-correct');
-        if(!mistakeIds.includes(q.id)) mistakeIds.push(q.id);
-
-        if(currentMode === 'learn'){
-          learnLearning.add(q.id);
-          learnWrong.push(q);
-        }
-      }
-
-      if(currentMode === 'speed'){
-        clearInterval(timerInterval);
-        const elapsed = Math.min(15, Math.max(1, Math.round((Date.now() - questionStartTime) / 1000)));
-        questionTimes.push(elapsed);
-        updateSpeedIndicator();
-      }
-
-      document.getElementById('explanation').textContent = `✅ Дұрыс жауап: ${q.options[q.correct]}`;
-      document.getElementById('explanation').classList.add('show');
-      document.getElementById('next-btn').classList.add('show');
-
-      saveStats();
-
-      if(currentMode === 'learn') updateLearnStatus();
-    }
-
-    function nextQuestion(){
-      clearTimeout(autoNextTimeout);
-      currentIndex++;
-
-      if(currentMode === 'learn' && currentIndex >= currentQuestions.length && learnWrong.length > 0){
-        currentQuestions = shuffle(learnWrong);
-        learnWrong = [];
-        currentIndex = 0;
-      }
-
-      showQuestion();
-    }
-
-    // =========================
-    // RESULTS + HISTORY
-    // =========================
-    function showResults(){
-      clearAllTimers();
-
-      const total = currentQuestions.length;
-      const percent = total > 0 ? Math.round((score / total) * 100) : 0;
-
-      if((currentMode === 'exam' || currentMode === 'speed') && score > bestScore){
-        bestScore = score;
-      }
-
-      if((currentMode === 'exam' || currentMode === 'speed') && playerName){
-        testHistory.unshift({
-          name: playerName,
-          mode: currentMode === 'exam' ? 'Емтихан' : '15 секунд',
-          score,
-          total,
-          percent,
-          date: new Date().toLocaleString('kk-KZ')
-        });
-
-        if(testHistory.length > 200) testHistory = testHistory.slice(0, 200);
-      }
-
-      saveStats();
-
-      let grade, gradeClass, emoji;
-      if(percent >= 80){ grade = 'Өте жақсы!'; gradeClass = 'excellent'; emoji = '🎉'; }
-      else if(percent >= 60){ grade = 'Жақсы!'; gradeClass = 'good'; emoji = '👍'; }
-      else { grade = 'Жаттығу керек!'; gradeClass = 'bad'; emoji = '📚'; }
-
-      showScreen('results-screen');
-      document.getElementById('results-content').innerHTML = `
-        <div class="score-circle ${gradeClass}">
-          ${score}/${total}
-          <span class="percent">${percent}%</span>
-        </div>
-        <h2>${emoji} ${grade}</h2>
-        <p>${playerName ? playerName + ' — ' : ''}${getModeLabel(currentMode)} аяқталды</p>
-
-        <div class="results-details">
-          <div class="result-item correct-bg">
-            <div class="r-num">${score}</div>
-            <div class="r-label">Дұрыс</div>
-          </div>
-          <div class="result-item wrong-bg">
-            <div class="r-num">${total - score}</div>
-            <div class="r-label">Қате</div>
-          </div>
-        </div>
-
-        ${questionTimes.length > 0 ? `<p style="color:#ffc107">⏱ Орташа уақыт: ${(questionTimes.reduce((a,b)=>a+b,0)/questionTimes.length).toFixed(1)}с</p>` : ''}
-
-        <div class="btn-group">
-          <button class="btn primary" onclick="goHome()">🏠 Бас мәзір</button>
-          <button class="btn" onclick="restartCurrentMode()">🔄 Қайта бастау</button>
-          <button class="btn" onclick="showLeaderboard()">🏆 Лидерборд</button>
-          ${mistakeIds.length > 0 ? '<button class="btn" onclick="startMistakes()">❌ Қателер</button>' : ''}
-        </div>
-      `;
-    }
-
-    function getModeLabel(mode){
-      if(mode === 'exam') return 'Емтихан';
-      if(mode === 'speed') return '15 секунд режимі';
-      if(mode === 'learn') return 'Жаттау режимі';
-      if(mode === 'marathon') return 'Марафон';
-      if(mode === 'mistakes') return 'Қателер режимі';
-      if(mode === 'topic') return 'Тақырыптық тест';
-      return 'Тест';
-    }
-
-    function restartCurrentMode(){
-      if(currentMode === 'exam') askNameAndStart('exam');
-      else if(currentMode === 'speed') askNameAndStart('speed');
-      else if(currentMode === 'learn') startLearn();
-      else if(currentMode === 'marathon') startMarathon();
-      else if(currentMode === 'mistakes') startMistakes();
-      else goHome();
-    }
-
-    // =========================
-    // FLASHCARDS
-    // =========================
-    function startFlashcards(){
-      flashQuestions = shuffle(allQuestions);
-      flashIndex = 0;
-      showScreen('flashcard-screen');
-      showFlashcard();
-    }
-
-    function showFlashcard(){
-      const q = flashQuestions[flashIndex];
-      document.getElementById('flash-question').textContent = q.q;
-      document.getElementById('flash-answer').textContent = q.options[q.correct];
-      document.getElementById('flash-counter').textContent = `${flashIndex + 1} / ${flashQuestions.length}`;
-      document.getElementById('flashcard').classList.remove('flipped');
-    }
-
-    function flipCard(){
-      document.getElementById('flashcard').classList.toggle('flipped');
-    }
-
-    function nextFlashcard(){
-      flashIndex = (flashIndex + 1) % flashQuestions.length;
-      showFlashcard();
-    }
-
-    function prevFlashcard(){
-      flashIndex = (flashIndex - 1 + flashQuestions.length) % flashQuestions.length;
-      showFlashcard();
-    }
-
-    // =========================
-    // ALL QUESTIONS
-    // =========================
-    function showAllQuestions(){
-      showScreen('all-questions-screen');
-      renderTopicFilters();
-      renderAllQuestions(allQuestions);
-    }
-
-    function renderTopicFilters(){
-      const topics = getTopics();
-      const container = document.getElementById('topic-filters');
-      container.innerHTML = `<button class="filter-btn active" onclick="filterByTopic('all', this)">Барлығы (${allQuestions.length})</button>`;
-      Object.entries(topics).forEach(([topic, list]) => {
-        container.innerHTML += `<button class="filter-btn" onclick="filterByTopic('${topic}', this)">${topic} (${list.length})</button>`;
-      });
-    }
-
-    function filterByTopic(topic, btn){
-      activeTopicFilter = topic;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      if(btn) btn.classList.add('active');
-      filterQuestions();
-    }
-
-    function filterQuestions(){
-      const search = document.getElementById('search-input').value.toLowerCase();
-      let filtered = allQuestions;
-
-      if(activeTopicFilter !== 'all'){
-        filtered = filtered.filter(q => q.topic === activeTopicFilter);
-      }
-
-      if(search){
-        filtered = filtered.filter(q =>
-          q.q.toLowerCase().includes(search) ||
-          q.options.some(o => o.toLowerCase().includes(search))
-        );
-      }
-
-      renderAllQuestions(filtered);
-    }
-
-    function renderAllQuestions(list){
-      const letters = ['A','B','C','D','E'];
-      document.getElementById('all-questions-list').innerHTML = list.map(q => {
-        const opts = q.options.map((opt, i) => `
-          <div class="opt ${i === q.correct ? 'correct-opt' : 'normal-opt'}">
-            ${letters[i]}) ${opt} ${i === q.correct ? '✅' : ''}
-          </div>
-        `).join('');
-
-        return `
-          <div class="q-item" onclick="this.classList.toggle('expanded')">
-            <div class="q-title">
-              <span><span class="q-num">#${q.id}</span>${q.q}${mistakeIds.includes(q.id) ? ' ❌' : ''}</span>
-              <span style="color:#6c63ff;font-size:12px;white-space:nowrap">${q.topic}</span>
-            </div>
-            <div class="q-answer">${opts}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // =========================
-    // LEADERBOARD
-    // =========================
-    function aggregateLeaderboard(){
-      const map = {};
-
-      testHistory.forEach(item => {
-        if(!map[item.name]){
-          map[item.name] = {
-            name: item.name,
-            attempts: 0,
-            bestPercent: 0,
-            totalPercent: 0,
-            bestScore: 0,
-            bestTotal: 0,
-            lastDate: item.date,
-            lastMode: item.mode
-          };
-        }
-
-        const row = map[item.name];
-        row.attempts++;
-        row.totalPercent += item.percent;
-
-        if(
-          item.percent > row.bestPercent ||
-          (item.percent === row.bestPercent && item.score > row.bestScore)
-        ){
-          row.bestPercent = item.percent;
-          row.bestScore = item.score;
-          row.bestTotal = item.total;
-        }
-
-        row.lastDate = item.date;
-        row.lastMode = item.mode;
-      });
-
-      return Object.values(map)
-        .map(item => ({
-          ...item,
-          avgPercent: Math.round(item.totalPercent / item.attempts)
-        }))
-        .sort((a,b) =>
-          b.bestPercent - a.bestPercent ||
-          b.avgPercent - a.avgPercent ||
-          b.attempts - a.attempts
-        );
-    }
-
-    function showLeaderboard(){
-      showScreen('leaderboard-screen');
-
-      const leaders = aggregateLeaderboard();
-      const lb = document.getElementById('leaderboard-list');
-      const history = document.getElementById('history-list');
-
-      if(leaders.length === 0){
-        lb.innerHTML = `<div class="leaderboard-empty">Әлі ешкім тест өтпеген.</div>`;
-      }else{
-        lb.innerHTML = leaders.map((item, index) => `
-          <div class="lb-entry">
-            <div style="display:flex;justify-content:center">
-              <div class="lb-rank ${index===0?'gold':index===1?'silver':index===2?'bronze':''}">${index+1}</div>
-            </div>
-            <div>
-              <div class="lb-name">${item.name}</div>
-              <div class="lb-small">Соңғысы: ${item.lastMode}</div>
-            </div>
-            <div>
-              <div class="lb-score">${item.bestPercent}%</div>
-              <div class="lb-small">Үздік нәтиже</div>
-            </div>
-            <div>
-              <div class="lb-score">${item.attempts}</div>
-              <div class="lb-small">Неше рет өтті</div>
-            </div>
-            <div>
-              <div class="lb-score">${item.avgPercent}%</div>
-              <div class="lb-small">Орташа</div>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      if(testHistory.length === 0){
-        history.innerHTML = `<div class="leaderboard-empty">Тарих бос.</div>`;
-      }else{
-        history.innerHTML = testHistory.slice(0, 25).map(item => `
-          <div class="history-entry">
-            <div><span class="lb-rank" style="margin:auto">${item.percent}%</span></div>
-            <div>
-              <div class="lb-name">${item.name}</div>
-              <div class="history-small">${item.date}</div>
-            </div>
-            <div>
-              <div class="lb-score">${item.mode}</div>
-              <div class="history-small">Режим</div>
-            </div>
-            <div>
-              <div class="lb-score">${item.score}/${item.total}</div>
-              <div class="history-small">Ұпай</div>
-            </div>
-            <div>
-              <div class="lb-score">${item.percent}%</div>
-              <div class="history-small">Нәтиже</div>
-            </div>
-          </div>
-        `).join('');
-      }
-    }
-
-    function clearLeaderboard(){
-      if(confirm('Лидерборд пен тест тарихын тазалаймыз ба?')){
-        testHistory = [];
-        saveStats();
-        showLeaderboard();
-      }
-    }
-
-    // =========================
-    // KEYBOARD
-    // =========================
-    document.addEventListener('keydown', e => {
-      if(['1','2','3','4','5'].includes(e.key)){
-        const quizActive = document.getElementById('quiz-screen').classList.contains('active');
-        if(quizActive && !answered){
-          selectAnswer(parseInt(e.key) - 1);
-        }
-      }
-
-      if(e.key === 'Enter'){
-        if(document.getElementById('name-screen').classList.contains('active')){
-          confirmNameAndStart();
-          return;
-        }
-        const nextBtn = document.getElementById('next-btn');
-        if(nextBtn.classList.contains('show')) nextQuestion();
-      }
-
-      if(e.key === 'Escape') goHome();
-
-      if(e.key === ' '){
-        if(document.getElementById('flashcard-screen').classList.contains('active')){
-          e.preventDefault();
-          flipCard();
-        }
-      }
-
-      if(e.key === 'ArrowRight'){
-        if(document.getElementById('flashcard-screen').classList.contains('active')) nextFlashcard();
-      }
-
-      if(e.key === 'ArrowLeft'){
-        if(document.getElementById('flashcard-screen').classList.contains('active')) prevFlashcard();
-      }
-    });
-  </script>
+  <div class="card hidden" id="quiz">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <span class="pill">№ <b id="num">1</b>/<b id="max">30</b></span>
+        <span class="pill">Дұрыс: <b id="good">0</b></span>
+        <span class="pill">Қате: <b id="bad">0</b></span>
+        <span class="pill">Уақыт: <b id="time">00:00</b></span>
+      </div>
+      <button onclick="backMenu()">🏠 Меню</button>
+    </div>
+    <div class="bar" style="margin:12px 0"><div id="prog"></div></div>
+    <div class="q" id="question"></div>
+    <div id="options"></div>
+    <div id="feedback" class="answerBox hidden"></div>
+    <div class="row" style="margin-top:12px">
+      <button id="nextBtn" class="primary hidden" onclick="nextQ()">Келесі ➜</button>
+      <button onclick="showCorrect()">👁 Дұрыс жауапты көрсету</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="result">
+    <h2>Нәтиже</h2>
+    <div id="resText"></div>
+    <div class="row">
+      <button class="primary" onclick="startTest(30,false)">Қайта 30 сұрақ</button>
+      <button class="warn" onclick="startTest(30,true)">Қателерді қайталау</button>
+      <button onclick="backMenu()">Меню</button>
+    </div>
+    <h3>Қате кеткен сұрақтар</h3>
+    <div id="mistakes"></div>
+  </div>
+
+  <div class="card hidden" id="allBox">
+    <div class="row" style="justify-content:space-between">
+      <h2>Барлық сұрақтар</h2>
+      <button onclick="backMenu()">🏠 Меню</button>
+    </div>
+    <input id="search" placeholder="Іздеу: alert, border, PHP..." oninput="renderAll()" style="width:100%;margin-bottom:10px">
+    <div id="allList"></div>
+  </div>
+</div>
+
+<script id="DATA" type="text/plain">
+window объектісінің _______ әдісі хабарламасы бар және бір батырмасы бар қарапайым терезені көрсету үшін қолданылады.	prompt()	splice()	confirm()	shift()	alert()	E
+____________ әдісі енгізу өрісі, хабарлама және OK мен Cancel батырмалары бар диалогтық терезені көрсетеді.	prompt()	splice()	confirm()	shift()	alert()	A
+____________ операторы айнымалының деректер типін сипаттайтын жолды қайтарады.	unshift()	typeof	pop()	some()	push()	B
+Мүмкін болған жағдайда жолды бүтін санға түрлендіретін функция.	parselnt()	parseFloat()	eval()	indexOf()	join()	A
+Мүмкін болған жағдайда жолды қалқымалы үтірлі санға түрлендіретін функция.	parselnt()	parseFloat()	eval()	indexOf()	join()	B
+Жолдағы өрнекті кәдімгі JavaScript өрнегі сияқты есептейтін функция.	parselnt()	parseFloat()	eval()	indexOf()	join()	C
+Массивтегі элементтер санын анықтау үшін қолданылатын қасиет.	Boolean	Object	concat()	length	push()	D
+else блогы жоқ шартты оператор түрі.	шарт	жеңілдетілген форма	ғаламдық айнымалы	өрнек	массив	B
+Массивтен элементті іздеуге арналған әдіс, бірақ іздеу массивтің соңынан басталады.	reverse()	lastIndexOf()	push()	forEach()	indexOf()	B
+Массивтің әрбір элементі үшін берілген функцияны шақыратын әдіс.	concat()	reverse()	forEach()	every()	indexOf()	C
+Бірнеше массивті біріктіру арқылы жаңа массив жасайтын әдіс.	concat()	reverse()	reduce()	push()	sort()	A
+Массивтің соңына элемент қосуға арналған әдіс.	splice()	join()	reduce()	push()	sort()	D
+Массивтің бірінші элементін жоятын әдіс.	unshift()	shift()	pop()	push()	sort()	B
+Бинарлық «НЕМЕСЕ» OR операциясы, егер операндтардың бірі true болса, ақиқат болады.	||	&&	!	!=	%	A
+Унарлық терістеу NOT операциясы.	||	&&	!	!=	%	C
+Массивтен элемент іздеуге арналған әдіс.	reduce()	lastIndexOf()	join()	concat()	indexOf()	E
+__________________ - айнымалылар, тұрақтылар және операторлар жиынтығы.	reduce()	өрнек	жеңілдетілген форма	unshift()	шарт	B
+Ағымдағы итерацияны тоқтатып, келесі қадамға өтеді.	continue	lastIndexOf()	break	parseInt	indexOf()	A
+______________________ — екі индексі бар, әрқайсысы жеке квадрат жақшада жазылады.	біржолды комментарий	көпжолды комментарий	екі өлшемді массив	бір өлшемді массив	шарт	C
+Бинарлық «ЖӘНЕ» AND операциясы, егер екі операнд та true болса, ақиқат болады.	||	&&	!	!=	%	B
+Массивтің бір бөлігін жойып, оның орнына жаңа элементтерді кірістіруге арналған әдіс.	join()	reverse()	reduce()	slice()	splice()	E
+Массив негізінде бір мәнді есептеуге арналған және элементтерді біртіндеп өңдейтін әдіс.	reduceRight()	reverse()	lastIndexOf()	splice()	reverse()	A
+Әр элементке берілген функцияны қолдану арқылы жаңа массив құратын әдіс.	some()	filter()	map()	splice()	pop()	C
+if шартты операторы дегеніміз не?	жолдағы өрнекті JavaScript сияқты есептейді	шарттың ақиқат немесе жалған болуына қарай әртүрлі командалар блогын орындайды	функция ішінде жарияланған айнымалы	if, switch	массив элементіне мән беру	B
+Салыстыру операторлары негізінде құрылған логикалық өрнек дегеніміз не?	alert әдісі	шарт	айнымалы	ғаламдық айнымалы	санау циклі	B
+Массивті бір ортақ мәнге келтіруге арналған әдіс қандай?	concat()	reverse()	reduce()	slice()	splice()	C
+Егер массив элементтерінің кем дегенде біреуі берілген шартқа сай келсе, true мәнін қайтарады, әйтпесе false қайтарады.	some()	sort()	reduce()	slice()	forEach()	A
+JavaScript-та айнымалыны қандай қызметтік сөздер арқылы жариялауға болады?	var, let	int	char	Var	$ int	A
+Логикалық деректер типі, тек екі мән қабылдайды: true және false.	int	char	for	float	boolean	E
+Массив элементтерін кері ретпен қайта сұрыптайтын әдіс.	join()	sort()	reduce()	reverse()	reduceRight()	D
+Массив элементтері негізінде мәтіндік жол құратын әдіс.	join()	indexOf()	reduce()	lastIndexOf()	push()	A
+Селектор анықтамасы __________________?	HTML элементінің атауы немесе HTML элементтер комбинациясы, оларға форматтау ережесі беріледі	анықтама “{” жақшасымен басталып “}” жақшасымен аяқталады	өңдеуге рұқсат беретін атрибут	drag and drop әрекеттерін анықтайтын атрибут	құжат құрылымын беру	A
+Блоктың анықтамасы __________________?	HTML элементінің атауы немесе HTML элементтерінің комбинациясы, оларға форматтау ережесі беріледі	анықтама “{“ сол жақ фигуралы жақшамен басталып, “}” оң жақ фигуралы жақшамен аяқталады	өңдеуге рұқсат беруді көрсететін атрибут	drag and drop әрекеттерін анықтайтын атрибут	құжат құрылымын беру, физикалық форматтау элементтерін қолдану	B
+CSS енгізу импорт әдісі __________________?	стильдер кестесі сыртқы файлда орналасып, HTML құжатына link арқылы қосылады	сыртқы файлдағы стильдер @import арқылы HTML ішіне енгізіледі	стильдер HTML құжаттың head бөлімінде style тегінде жазылады	әр тегке style атрибуты арқылы жеке стиль беріледі	drag and drop атрибуты	C
+margin-left дегеніміз не?	сол жақ шекара	сол жақ өріс (поле)	сол жақ шегініс	оң жақ шегініс	оң жақ шекара	B
+border-right дегеніміз не?	сол жақ шекара	сол жақ өріс	сол жақ шегініс	оң жақ шегініс	оң жақ шекара	E
+padding-left дегеніміз не?	сол жақ шекара	сол жақ өріс	сол жақ шегініс	оң жақ шегініс	оң жақ шекара	C
+padding-top дегеніміз не?	жоғарғы шегініс мөлшері	оң жақ шегініс мөлшері	төменгі шегініс мөлшері	сол жақ шегініс мөлшері	оң жақ шегініс	A
+width қасиеті ______________________________________.	элементтің енін орнатады	элементтің жоғарғы шетінің орнын ата-аналық элементке қатысты анықтайды	элементтің ішкі сол жақ шегінісін орнатады	сол жақ шекараның түсін, түрін және қалыңдығын орнатады	элементтің төменгі шетінің орнын анықтайды	A
+Төменгі шекараның ені қалай беріледі?	border-top-width:	border-bottom-width:	border-right-width:	border-left-width:	border-top-color:	B
+Төменгі шекараның түсі қалай анықталады?	border-top-color:	border-bottom-color:	border-right-color:	border-left-color:	border-bottom-width:	B
+Төрт шекараның түсін бір уақытта көрсетуге арналған қасиет.	border-color	border-bottom-color:	border-right-color:	border-left-color:	border-bottom-width:	A
+Линия түрі _________ — бұл мәнді қолданғанда блок дөңес көтеріңкі болып көрінеді.	dotted	groove	ridge	inset	outset	E
+Линия түрі __________________ — шекара дөңес сызық түрінде көрінеді.	dotted	groove	ridge	inset	outset	C
+___________________ қасиеті фондық суреттің құжатпен бірге жылжитынын немесе жылжымайтынын анықтайды.	background-repeat:	background-attachment:	background-position:	background-origin	background-size	B
+_____________________ қасиеті фондық суреттің вертикаль және горизонталь бағытта қайталануын анықтайды.	background-repeat:	background-attachment:	background-position:	background-origin	background-size	A
+_____________________ көмегімен мәтінді астын сызу, үстінен сызу немесе сызып тастау жасауға болады.	text-decoration	text-indent	text-align	text-decoration	line-through	A
+________________ көмегімен абзацтың бірінші жолындағы бірінші сөздің шегінісін беруге болады.	text-decoration	text-indent	text-align	text-decoration	line-through	B
+____________ қасиеті мәтінді стильдік блоктың ішіндегі туралауды анықтайды.	text-decoration	text-indent	text-align	text-decoration	line-through	C
+text-decoration қасиетінің ____________ мәні берілсе, мәтіннің әр жолы астынан сызылады.	underline	overline	line-through	none	text-indent	A
+__________________ CSS қасиеті әріптер арасындағы қашықтықты орнатады.	letter-spacing	letterspacing.normal	wordspacing	lineheight	text-decoration	A
+___________________ қасиеті мәтіндегі әріптердің регистрін үлкен/кіші түрлендіреді.	text-transform	text-decoration	text-indent	text-align	text-decoration	A
+___________________ қасиеті мәтіндегі сызықтың орналасуын анықтайды.	text-decoration-line	text-decoration-style	text-decoration-color	text-transform	text-decoration	A
+_________________________ қасиеті анимацияның орындалу уақытын орнатады.	animation-duration	animation-name	animation-delay	animation-timing-function	animation-iteration-count	A
+________________________ қасиеті анимация аяқталғаннан кейін оның қандай күйде қалатынын анықтайды.	animation-duration	animation-name	animation-delay	animation-timing-function	animation-fill-mode	E
+_______________ қасиеті — анимацияға арналған қысқаша қасиет, барлық параметрлерді бірден орнатуға мүмкіндік береді.	animation-duration	animation-name	animation	animation-timing-function	animation-fill-mode	C
+________________ қасиеті элементтің трансформациялары қай нүктеге қатысты орындалатынын анықтайды.	transform-origin	transform	rotate()	rotateX	rotateY	A
+_________________ қасиеті элементтің тышқан оқиғаларына реакциясын өшіруге мүмкіндік береді.	pointer-events	user-select	selection	opacity	hue-rotate	A
+ul тізімінде нүктелердің орнына квадрат немесе шеңбер, ал ol тізімінде рим сандары немесе әріптер қолдануға мүмкіндік беретін қасиет.	list-style-type	caret-color	list-style-image	list-style	lineheight	A
+list-style-type, list-style-image және list-style-position қасиеттерін бір уақытта орнатуға мүмкіндік беретін қасиет.	list-style-type	caret-color	list-style-image	list-style	lineheight	D
+Құжаттың басқа жерінде қайта қолдануға болатын, өз алдына бөлек бөлікті сипаттайтын элемент.	<article>	profile	<section>	<aside>	style	A
+Кестедегі жолдар саны қандай тегтердің санына байланысты анықталады?	UL	<TR>	<TD>	THEAD	<TH>	B
+Кестедегі негізгі мазмұндық жолдар тобын білдіретін тег.	Тег TBODY	<TR>	<TD>	THEAD	<TH>	A
+Элементті жасыруға мүмкіндік беретін логикалық атрибут.	contenteditable	hidden	tabindex	draggable	style	B
+Пайдаланушыға тег ішіндегі мазмұнды өңдеуге рұқсат беруді анықтайтын атрибут.	contenteditable	hidden	tabindex	draggable	translate	A
+= "символ" — пернетақтадағы пернені тағайындауға мүмкіндік беретін атрибут, басқанда тегті іске қосады немесе ерекшелейді.	dropzone	accesskey	profile	tabindex	hidden	B
+Беттің автономды өздігінен бөлек бөлімін білдіретін элемент.	<section>	hidden	COLGROUP	<article>	profile	A
+Жолды мәжбүрлі түрде жаңа жолға ауыстыратын элемент.	nav тегі	P тегі	BR тегі	<abbr> тегі	<section> тегі	C
+Кестедегі бағандардың жолдар тобының төменгі бөлігін аяғын білдіретін тег.	FOOTER тегі	TBODY тегі	THEAD тегі	TFOOT тегі	COLGROUP тегі	D
+Элементке қолданылатын CSS стильдерін сипаттайтын қасиет.	draggable атрибуты	translate атрибуты	style атрибуты	hidden атрибуты	profile атрибуты	C
+HTML абзацтарға бөлуді жүзеге асыратын тег қандай?	P тегі	NAV тегі	BODY тегі	BR тегі	THEAD тегі	A
+HTML құжаты жылжытылған жағдайда да салыстырмалы сілтемелердің дұрыс жұмыс істеуін қамтамасыз ететін тег.	<HREF> тегі	BODY тегі	NAV тегі	BASE тегі	LINK тегі	D
+title атрибутымен бірге қолданылып, аббревиатураның толық мағынасын көрсететін тег.	<abbr> тегі	<acronym> тегі	accesskey атрибуты	<dfn> тегі	dropzone атрибуты	B
+Бетті автоматты аудару кезінде тег ішіндегі мазмұнның аударылатынын немесе аударылмайтынын анықтайтын атрибут.	dropzone атрибуты	translate атрибуты	accesskey атрибуты	profile атрибуты	FOOTER тегі	B
+Мәтінді ерекшелеу акцент беру үшін қолданылатын тег.	FOOTER тегі	<TD> тегі	<em> тегі	<p> тегі	CAPTION тегі	C
+__________ — орындалу кезінде интерпретацияланатын бағдарламалық нұсқаулар жиынтығы.	Скрипт	PHP	Бағдарламалау тілінің лексикалық құрылымы	Оператор	Массив	A
+Айнымалы атаулары әрқашан қай таңбадан басталуы керек?	<php>	<?php ... ?>	<script>	<code>	($)	E
+Константаларды анықтау үшін қандай функция қолданылады?	define()	combine()	concatenate()	merge()	const	A
+__________ командасы жолдар мен сандарды шығарады, сонымен қатар олардың типін және өлшемін көрсетеді.	Int	Var	Echo	$ int	var_dump	E
+Функция ішінде ғаламдық айнымалыға қол жеткізу үшін қандай кілт сөз қолданылады?	global	counter	now	time	date	A
+Статикалық айнымалыны жариялау үшін қандай кілт сөз қолданылады?	Static	Function	Echo	var_dump	global	A
+Сценарийдің орындалуын дереу тоқтату үшін қандай оператор қолданылады?	exit	return	check()	isset()	break	A
+PHP-де массивті қалай жариялауға болады?	array{}	array()	[]	{}	rray()	B
+Айнымалының анықталғанын қалай тексеруге болады?	check()	isset()	is_set()	exists()	defined()	B
+PHP скриптін аяқтау үшін қандай әдіс қолданылады?	die()	exit()	stop()	end()	halt()	B
+Скрипт сценарий дегеніміз не?	орындалу кезінде интерпретацияланатын бағдарламалық нұсқаулар жиынтығы	орындалу кезінде интерпретацияланатын тіл, скрипттер басқа ортаға енгізіледі	серверде орындалатын скрипттер	веб-сайттар жасауға арналған бағдарламалау тілі	серверлік және клиенттік скрипттер туралы түсінік	A
+\n символы нені білдіреді?	табуляция белгісі	байланыс привязка	тік табуляция	жаңа жол	жаңа баған	D
+PHP-де көпжолды комментарийді қалай жазуға болады?	//	*	##	–	///	B
+PHP-де объектіні қалай құруға болады?	new Object()	Object()	new ClassName()	class ClassName {}	ClassName()	A
+\t символы нені білдіреді?	табуляция белгісі	байланыс	тік табуляция	жаңа жол	жаңа баған	A
+_______________ функциясы екі берілген мәннің арасындағы тізбекті сандар немесе символдар массивін құрады.	range()	new Object()	Object()	new ClassName()	halt()	A
+Массивтегі элементтер санын қайтаратын функциялар қандай?	new Object()	Object()	new ClassName()	class ClassName {}	count(), sizeof()	E
+Массивтің барлық элементтерін айнымалыларға көшіру үшін қандай конструкция қолданылады?	range()	count()	sizeof()	list()	copy()	D
+Массивті бірнеше кіші массивтерге бөлу үшін қандай функция қолданылады?	array chunk()	array_slice()	array_keys()	array_key_exists()	list()	A
+_______________ функциясы тек кілттерден тұратын массивті қайтарады.	array chunk()	array_slice()	array_keys()	array_key_exists()	list()	C
+_____________________ — өзара байланысты ақпаратты қамтитын өрістер жиынтығы.	Жазба record	Кесте table	Мән entity	Индекс index	Көріністер views	A
+_______________ — бір немесе бірнеше кестелерден не көріністерден алынған деректердің біртұтас көрінісін ұсынады.	Жазба record	Кесте table	Мән entity	Индекс index	Көріністер views	E
+ДҚ-дағы деректер типтері: MEDIUMTEXT қандай ұзындықтағы мәтінді сақтай алады?	255 символ	65535 символ	65 КБ	16 МБ	4 ГБ	D
+CREATE операторы не істейді?	әртүрлі объектілерді құрады	деректер қорынан ақпарат таңдайды	жазба қосады	жазбаны/жазбаларды жаңартады	жазбаны/жазбаларды жояды	A
+WHERE параметрі не үшін қолданылады?	таңдалатын жазбаларды анықтайтын шартты көрсету үшін	сұрыптау орындалатын өрісті көрсету үшін	жазбаны өзгерту үшін	әдепкі мәнді орнату үшін	жазбаны жою үшін	A
+ORDER BY параметрі не үшін қолданылады?	жазбаларды таңдау шартын көрсету үшін	сұрыптау орындалатын өрісті көрсету үшін	жазбаны өзгерту үшін	әдепкі мәнді орнату үшін	жазбаны жою үшін	B
+DEFAULT мәні нені білдіреді?	таңдау шартын көрсету	сұрыптау өрісін көрсету	өзгерту үшін	кесте құрылғанда берілген әдепкі мәнді орнатады	жою үшін	D
+Қай тег мәтінді анықтама definition ретінде белгілейді?	<dfn> тегі	<cite> тегі	<em> тегі	<code> тегі	<i> тегі	A
+Тегтің мазмұнын сүйреп апаруға болатынын немесе болмайтынын анықтайды.	style атрибуты	draggable атрибуты	translate атрибуты	accesskey атрибуты	tabindex атрибуты	D
+Мәні 0-ден 32767-ге дейінгі сан болатын, Tab пернесін басу арқылы ауысу ретін анықтайтын атрибут.	translate атрибуты	dropzone атрибуты	hidden атрибуты	tabindex атрибуты	accesskey атрибуты	D
+Тег мазмұны үшін мәтін бағытын көрсетуге мүмкіндік береді.	href	HEADER	CAPTION	dir	<dfn>	D
+UL тегі ………	реттелмеген тізімдер	мәтінді форматтау	реттелген тізімдер	жолдық тег	тізімдік тег	A
+UL және OL тізімдері қандай тег арқылы элементтерден тұрады?	LI тегі	LINK тегі	<TD> тегі	<b> тегі	<code> тегі	A
+HEAD тегінің сыртқы мета-файлды көрсететін атрибуты.	profile	accesskey	translate	dropzone	CAPTION	A
+Кестенің атауын тақырыбын анықтайтын тег.	<abbr> тегі	COLGROUP тегі	META тегі	CAPTION тегі	<TD> тегі	D
+Құжат туралы ақпаратты қамтитын төменгі колонтитул.	FOOTER	<cite>	<em>	HEADER	NAV	A
+Кестенің тақырып бөлігін білдіретін жолдар тобын анықтайтын тег.	THEAD тегі	HEADER тегі	TBODY тегі	TFOOT тегі	CAPTION тегі	A
+HTML құжатының тақырып бөлігін анықтайтын тег.	THEAD тегі	HEADER тегі	TBODY тегі	TFOOT тегі	CAPTION тегі	B
+Браузерге HTML стандарты қолданылғанын көрсететін тег.	draggable атрибуты	accesskey атрибуты	<!DOCTYPE html>	<HEAD>	<BODY>	C
+Құжат туралы ақпаратты қамтуға арналған тег.	<HEAD>	hidden	<code>	draggable	accesskey	A
+Мәтінді форматтау үшін қандай тәсілдер қолданылады?	тег мазмұнын өңдеуге рұқсат беретін атрибут	drag-and-drop әрекеттерін анықтайтын атрибут	құжат құрылымын беру және тікелей физикалық форматтау элементтерін қолдану	HTML құжатының тақырып бөлігін анықтайтын тег	барлық жауап дұрыс	C
+Браузерлер мен іздеу жүйелеріне арналған ақпаратты сақтайтын метатегтерді анықтайды.	BODY тегі	CAPTION тегі	META тегі	FOOTER тегі	THEAD тегі	C
+Оның ішіндегі ақпарат әдетте қалың қаріппен көрсетіліп, ұяшықтың ортасына тураланады.	<em> тегі	<TD> тегі	<TH> тегі	<strong> тегі	<abbr> тегі	C
+< ! - - Текст - - > нені білдіреді?	беттің автономды бөлігі	құжат туралы ақпарат сақтайтын тег	HTML стандарты қолданылғанын көрсететін тег	комментарий тегтері	дұрыс жауап жоқ	D
+…………… элементі компьютерлік бағдарлама немесе скрипт нәтижесін көрсету үшін қолданылады.	<code> тегі	<samp> тегі	<dfn> тегі	<abbr> тегі	<strong> тегі	D
+</script>
+
+<script>
+let questions = [];
+let current = [];
+let i = 0, good = 0, bad = 0, answered = false, startTime = 0, timer = null;
+let mistakesSession = [];
+const letters = ["A","B","C","D","E"];
+
+function parseData(){
+  const raw = document.getElementById("DATA").textContent.trim();
+  const seen = new Set();
+  questions = raw.split(/\n+/).map((line, idx)=>{
+    const p = line.split("\t");
+    if(p.length < 7) return null;
+    const q = {
+      id: idx,
+      q: p[0].trim(),
+      opts: {A:p[1].trim(), B:p[2].trim(), C:p[3].trim(), D:p[4].trim(), E:p[5].trim()},
+      ans: p[6].trim().toUpperCase()
+    };
+    const key = (q.q + JSON.stringify(q.opts)).toLowerCase().replace(/\s+/g," ");
+    if(seen.has(key)) return null;
+    seen.add(key);
+    return q;
+  }).filter(Boolean);
+  document.getElementById("totalCount").textContent = questions.length;
+  updateWrongCount();
+}
+function stat(){
+  return JSON.parse(localStorage.getItem("webExamStats") || "{}");
+}
+function saveStat(s){
+  localStorage.setItem("webExamStats", JSON.stringify(s));
+  updateWrongCount();
+}
+function markStat(qid, ok){
+  const s = stat();
+  s[qid] ||= {ok:0,bad:0};
+  ok ? s[qid].ok++ : s[qid].bad++;
+  saveStat(s);
+}
+function updateWrongCount(){
+  const s = stat();
+  let n = Object.values(s).filter(x=>x.bad>x.ok || x.bad>0).length;
+  document.getElementById("wrongCount").textContent = n;
+}
+function resetStats(){
+  if(confirm("Статистиканы өшірейін бе?")){
+    localStorage.removeItem("webExamStats");
+    updateWrongCount();
+  }
+}
+function shuffle(a){
+  return [...a].sort(()=>Math.random()-0.5);
+}
+function pickHard(){
+  const s = stat();
+  let hard = questions.filter(q => s[q.id]?.bad > 0 || (s[q.id]?.bad||0) >= (s[q.id]?.ok||0));
+  if(hard.length < 10) hard = questions;
+  return hard;
+}
+function startTest(n=30, hard=false){
+  hideAll();
+  document.getElementById("quiz").classList.remove("hidden");
+  const pool = hard ? pickHard() : questions;
+  current = shuffle(pool).slice(0, Math.min(n, pool.length));
+  i=0; good=0; bad=0; mistakesSession=[]; startTimer();
+  document.getElementById("max").textContent = current.length;
+  renderQ();
+}
+function startLearn(){
+  hideAll();
+  document.getElementById("quiz").classList.remove("hidden");
+  current = shuffle(questions);
+  i=0; good=0; bad=0; mistakesSession=[]; startTimer();
+  document.getElementById("max").textContent = current.length;
+  renderQ();
+}
+function hideAll(){
+  ["menu","quiz","result","allBox"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+}
+function backMenu(){
+  clearInterval(timer);
+  hideAll();
+  document.getElementById("menu").classList.remove("hidden");
+}
+function startTimer(){
+  clearInterval(timer);
+  startTime = Date.now();
+  timer = setInterval(()=>{
+    const sec = Math.floor((Date.now()-startTime)/1000);
+    const m = String(Math.floor(sec/60)).padStart(2,"0");
+    const s = String(sec%60).padStart(2,"0");
+    document.getElementById("time").textContent = `${m}:${s}`;
+  },500);
+}
+function renderQ(){
+  answered = false;
+  const q = current[i];
+  document.getElementById("num").textContent = i+1;
+  document.getElementById("good").textContent = good;
+  document.getElementById("bad").textContent = bad;
+  document.getElementById("prog").style.width = `${(i/current.length)*100}%`;
+  document.getElementById("question").innerHTML = q.q;
+  document.getElementById("feedback").classList.add("hidden");
+  document.getElementById("nextBtn").classList.add("hidden");
+
+  let order = [...letters];
+  if(document.getElementById("shuffleOpts").checked) order = shuffle(order);
+
+  document.getElementById("options").innerHTML = order.map(L=>`
+    <button class="opt" data-l="${L}" onclick="answer('${L}')">
+      <span class="letter">${L}</span>
+      <span>${q.opts[L]}</span>
+    </button>
+  `).join("");
+}
+function answer(L){
+  if(answered) return;
+  answered = true;
+  const q = current[i];
+  const ok = L === q.ans;
+  if(ok) good++; else {
+    bad++;
+    mistakesSession.push({q, chosen:L});
+  }
+  markStat(q.id, ok);
+
+  document.querySelectorAll(".opt").forEach(btn=>{
+    const bL = btn.dataset.l;
+    if(bL === q.ans) btn.classList.add("correct");
+    if(bL === L && !ok) btn.classList.add("wrong");
+  });
+
+  const fb = document.getElementById("feedback");
+  fb.classList.remove("hidden");
+  fb.innerHTML = ok
+    ? `✅ <b>Дұрыс!</b> Жауап: <b>${q.ans}) ${q.opts[q.ans]}</b>`
+    : `❌ <b>Қате.</b> Сен таңдадың: <b>${L}) ${q.opts[L]}</b><br>Дұрыс жауап: <b>${q.ans}) ${q.opts[q.ans]}</b>`;
+  document.getElementById("nextBtn").classList.remove("hidden");
+  document.getElementById("good").textContent = good;
+  document.getElementById("bad").textContent = bad;
+}
+function showCorrect(){
+  if(answered) return;
+  const q = current[i];
+  answered = true;
+  bad++;
+  mistakesSession.push({q, chosen:"көрсетілді"});
+  markStat(q.id, false);
+  document.querySelectorAll(".opt").forEach(btn=>{
+    if(btn.dataset.l === q.ans) btn.classList.add("correct");
+  });
+  const fb = document.getElementById("feedback");
+  fb.classList.remove("hidden");
+  fb.innerHTML = `👁 Дұрыс жауап: <b>${q.ans}) ${q.opts[q.ans]}</b>`;
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+function nextQ(){
+  if(!answered) return;
+  i++;
+  if(i >= current.length) finish();
+  else renderQ();
+}
+function finish(){
+  clearInterval(timer);
+  hideAll();
+  document.getElementById("result").classList.remove("hidden");
+  const percent = Math.round(good/current.length*100);
+  let msg = percent >= 90 ? "🔥 Өте жақсы! 100 баллға жақынсың."
+          : percent >= 75 ? "👍 Жақсы, бірақ қателерді қайтала."
+          : "⚠️ Қайта оқу керек. Қате сұрақтарды бас.";
+  document.getElementById("resText").innerHTML = `
+    <p style="font-size:22px"><b>${good}/${current.length}</b> дұрыс — <b>${percent}%</b></p>
+    <p>${msg}</p>
+  `;
+  document.getElementById("mistakes").innerHTML = mistakesSession.length
+    ? mistakesSession.map((m,k)=>`
+      <div class="listItem">
+        <b>${k+1}. ${m.q.q}</b><br>
+        Сен: <span class="bad pill">${m.chosen}</span>
+        Дұрыс: <span class="ok pill">${m.q.ans}) ${m.q.opts[m.q.ans]}</span>
+      </div>`).join("")
+    : "<p>Қате жоқ ✅</p>";
+}
+function showAll(){
+  hideAll();
+  document.getElementById("allBox").classList.remove("hidden");
+  renderAll();
+}
+function renderAll(){
+  const s = (document.getElementById("search").value || "").toLowerCase();
+  const arr = questions.filter(q => (q.q + " " + Object.values(q.opts).join(" ")).toLowerCase().includes(s));
+  document.getElementById("allList").innerHTML = arr.map((q,k)=>`
+    <div class="listItem">
+      <b>${k+1}. ${q.q}</b><br>
+      A) ${q.opts.A}<br>
+      B) ${q.opts.B}<br>
+      C) ${q.opts.C}<br>
+      D) ${q.opts.D}<br>
+      E) ${q.opts.E}<br>
+      <span class="ok pill">Дұрыс: ${q.ans}) ${q.opts[q.ans]}</span>
+    </div>
+  `).join("");
+}
+document.addEventListener("keydown", e=>{
+  const k = e.key.toUpperCase();
+  if(!document.getElementById("quiz").classList.contains("hidden")){
+    if(letters.includes(k)) answer(k);
+    if(e.key === "Enter" && answered) nextQ();
+  }
+});
+parseData();
+</script>
 </body>
 </html>
